@@ -1,0 +1,77 @@
+on:
+  - push
+  - pull_request
+
+jobs:
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-22.04
+    env:
+      MIX_ENV: test
+    steps:
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "25.1.2"
+          elixir-version: "1.14.1"
+      - name: Install Nerves bootstrap
+        run: mix archive.install --force hex nerves_bootstrap
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Get dependencies
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+          mix deps.get --only test
+        working-directory: app
+      - name: Run unit tests
+        run: mix test
+        working-directory: app
+
+  type_check:
+    name: Type Check
+    runs-on: ubuntu-22.04
+    env:
+      MIX_TARGET: bbb_ci
+    steps:
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "25.1.2"
+          elixir-version: "1.14.1"
+      - name: Install Nerves bootstrap
+        run: mix archive.install --force hex nerves_bootstrap
+      - name: Restore Nerves artifacts
+        uses: actions/cache@v1
+        with:
+          path: ~/.nerves/artifacts
+          key: nerves-artifacts-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            nerves-artifacts-${{ github.ref }}-${{ github.sha }}
+            nerves-artifacts-${{ github.ref }}-
+            nerves-artifacts-refs/heads/master-
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Create bogus SSH key
+        run: mkdir -p ~/.ssh; echo "bogus" > ~/.ssh/id_rsa.pub
+      - name: Get dependencies
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+          mix deps.get --only dev
+        working-directory: app
+      - name: Restore PLTs
+        uses: actions/cache@v1
+        with:
+          path: app/_build/${{ env.MIX_TARGET }}_dev/plt
+          key: plt-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            plt-${{ github.ref }}-${{ github.sha }}
+            plt-${{ github.ref }}-
+            plt-refs/heads/master-
+      - name: Compile
+        run: mix compile
+        working-directory: app
+      - name: Run dialyzer
+        run: mix dialyzer.ci
+        working-directory: app

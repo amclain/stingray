@@ -3,7 +3,7 @@ defmodule Stingray.MixProject do
 
   @app :stingray
   @version "0.1.0"
-  @all_targets [:bbb]
+  @all_targets [:bbb, :bbb_ci]
 
   def project do
     [
@@ -33,6 +33,7 @@ defmodule Stingray.MixProject do
       ],
       preferred_cli_target: [
         dialyzer: :bbb,
+        "dialyzer.ci": :bbb_ci,
         run: :host,
         test: :host,
       ],
@@ -50,6 +51,7 @@ defmodule Stingray.MixProject do
   defp aliases do
     [
       "coveralls.show": ["coveralls.html", &open("cover/excoveralls.html", &1)],
+      "dialyzer.ci": "dialyzer",
       "docs.show": ["docs", &open("doc/index.html", &1)],
       test: "coveralls",
     ]
@@ -74,11 +76,9 @@ defmodule Stingray.MixProject do
       {:nerves_pack, "~> 0.7", targets: @all_targets},
 
       # Dependencies for specific targets
-      # NOTE: It's generally low risk and recommended to follow minor version
-      # bumps to Nerves systems. Since these include Linux kernel and Erlang
-      # version updates, please review their release notes in case
-      # changes to your application are needed.
-      {:nerves_system_stingray_bbb, path: "../nerves_system_stingray_bbb", runtime: false, targets: :bbb}
+      {:nerves_system_bbb, "~> 2.16", runtime: false, targets: :bbb_ci},
+      # {:nerves_system_stingray_bbb, git: "git@github.com:amclain/nerves_system_stringray_bbb.git", runtime: false, nerves: [compile: true], targets: :bbb},
+      {:nerves_system_stingray_bbb, path: "../../nerves_system_stingray_bbb", runtime: false, targets: :bbb},
     ]
   end
 
