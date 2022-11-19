@@ -4,6 +4,7 @@ defmodule Stingray.MixProject do
   @app :stingray
   @version "0.1.0"
   @all_targets [:bbb, :bbb_ci]
+  @stingray_system_path System.get_env("STINGRAY_SYSTEM_PATH", "../../nerves_system_stingray_bbb")
 
   def project do
     [
@@ -78,7 +79,7 @@ defmodule Stingray.MixProject do
       # Dependencies for specific targets
       {:nerves_system_bbb, "~> 2.16", runtime: false, targets: :bbb_ci},
       # {:nerves_system_stingray_bbb, git: "git@github.com:amclain/nerves_system_stringray_bbb.git", runtime: false, nerves: [compile: true], targets: :bbb},
-      {:nerves_system_stingray_bbb, path: "../../nerves_system_stingray_bbb", runtime: false, targets: :bbb},
+      {:nerves_system_stingray_bbb, path: @stingray_system_path, runtime: false, targets: :bbb},
     ]
   end
 
