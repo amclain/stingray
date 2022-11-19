@@ -12,7 +12,9 @@ defmodule Stingray.MixProject do
       elixir: "~> 1.14",
       archives: [nerves_bootstrap: "~> 1.11"],
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
+      docs: docs(),
       releases: [{@app, release()}],
       preferred_cli_target: [run: :host, test: :host]
     ]
@@ -26,10 +28,17 @@ defmodule Stingray.MixProject do
     ]
   end
 
+  defp aliases do
+    [
+      "docs.show": ["docs", &docs_open/1]
+    ]
+  end
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       # Dependencies for all targets
+      {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:nerves, "~> 1.9", runtime: false},
       {:shoehorn, "~> 0.9"},
       {:ring_logger, "~> 0.8"},
@@ -49,6 +58,13 @@ defmodule Stingray.MixProject do
     ]
   end
 
+  defp docs do
+    [
+      main: "readme",
+      extras: ["../README.md", "../LICENSE.txt"]
+    ]
+  end
+
   def release do
     [
       overwrite: true,
@@ -59,5 +75,15 @@ defmodule Stingray.MixProject do
       steps: [&Nerves.Release.init/1, :assemble],
       strip_beams: Mix.env() == :prod or [keep: ["Docs"]]
     ]
+  end
+
+  defp docs_open(_args) do
+    System.cmd(open_command(), ["doc/index.html"])
+  end
+
+  defp open_command() do
+    System.find_executable("xdg-open") # Linux
+    || System.find_executable("open")  # Mac
+    || raise "Could not find executable 'open' or 'xdg-open'"
   end
 end
