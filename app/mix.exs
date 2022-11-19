@@ -22,6 +22,9 @@ defmodule Stingray.MixProject do
         plt_add_apps: [:mix],
         plt_file: {:no_warn, plt_file_path()},
       ],
+      preferred_cli_env: [
+        espec: :test,
+      ],
       preferred_cli_target: [
         dialyzer: :bbb,
         run: :host,
@@ -40,7 +43,8 @@ defmodule Stingray.MixProject do
 
   defp aliases do
     [
-      "docs.show": ["docs", &docs_open/1]
+      "docs.show": ["docs", &docs_open/1],
+      test: "espec",
     ]
   end
 
@@ -49,6 +53,7 @@ defmodule Stingray.MixProject do
     [
       # Dependencies for all targets
       {:dialyxir, "~> 1.2", only: :dev, runtime: false},
+      {:espec, "~> 1.9", only: :test},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:nerves, "~> 1.9", runtime: false},
       {:shoehorn, "~> 0.9"},
