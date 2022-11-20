@@ -75,5 +75,15 @@ defmodule Stringray.Target.Test do
     ])
   end
 
-  it "can remove a target"
+  describe "remove a target" do
+    specify do
+      expect Target.remove(target_id()) |> should(eq {:ok, shared.target})
+      expect Target.list |> should(eq [])
+    end
+
+    it "returns an error if the target doesn't exist" do
+      expect Target.remove(:invalid_target) |> should(eq {:error, :not_found})
+      expect Target.list |> should(eq [shared.target])
+    end
+  end
 end

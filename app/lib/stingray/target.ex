@@ -87,4 +87,25 @@ defmodule Stingray.Target do
   def list do
     CubDB.get(:settings, :targets, [])
   end
+
+  @doc """
+  Remove a target from being managed by Stingray.
+
+  This target's configuration and data will be lost.
+  """
+  @spec remove(id :: atom) :: {:ok, t} | {:error, :not_found}
+  def remove(id) do
+    CubDB.get_and_update(:settings, :targets, fn targets ->
+      targets = targets || []
+
+      case Enum.find(targets, & id == &1.id) do
+        nil ->
+          {{:error, :not_found}, targets}
+
+        target ->
+          new_targets = List.delete(targets, target)
+          {{:ok, target}, new_targets}
+      end        
+    end)
+  end
 end
