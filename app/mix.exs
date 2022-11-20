@@ -62,6 +62,7 @@ defmodule Stingray.MixProject do
   defp deps do
     [
       # Dependencies for all targets
+      {:cubdb, "~> 2.0"},
       {:dialyxir, "~> 1.2", only: :dev, runtime: false},
       {:espec, "~> 1.9", only: :test},
       {:excoveralls, "~> 0.15", only: :test},
