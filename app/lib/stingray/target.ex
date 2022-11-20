@@ -79,6 +79,15 @@ defmodule Stingray.Target do
   end
 
   @doc """
+  Get a target by id.
+  """
+  @spec get(id :: atom) :: t | nil
+  def get(id) do
+    CubDB.get(:settings, :targets, [])
+    |> Enum.find(& id == &1.id)
+  end
+
+  @doc """
   List targets managed by Stingray.
 
   This list is ordered by ascending target number.

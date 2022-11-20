@@ -49,6 +49,16 @@ defmodule Stringray.Target.Test do
     end
   end
 
+  describe "get a target" do
+    specify do
+      expect Target.get(target_id()) |> should(eq shared.target)
+    end
+
+    it "returns nil if the target isn't found" do
+      expect Target.get(:invalid_target) |> should(eq nil)
+    end
+  end
+
   it "lists targets in numerical order" do
     Target.add(5, :target_5, "Target 5", "ttyUSB5")
     Target.add(3, :target_3, "Target 3", "ttyUSB3")
