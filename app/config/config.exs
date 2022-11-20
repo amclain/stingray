@@ -5,6 +5,13 @@
 # this project.
 import Config
 
+# Configuration overlay order.
+#
+# 1. config/config.exs
+# 2. config/target/non_host.exs
+# 3. config/target/#{Mix.target()}.exs
+# 4. config/env/#{Mix.env()}.exs
+
 # Enable the Nerves integration with Mix
 Application.start(:nerves_bootstrap)
 
@@ -20,8 +27,9 @@ config :nerves, :firmware, rootfs_overlay: "rootfs_overlay"
 
 config :nerves, source_date_epoch: "1667776425"
 
-if Mix.target() == :host do
-  import_config "host.exs"
-else
+if Mix.target() != :host do
   import_config "target.exs"
 end
+
+import_config "target/#{Mix.target()}.exs"
+import_config "env/#{Mix.env()}.exs"
