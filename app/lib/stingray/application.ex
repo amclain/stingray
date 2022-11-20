@@ -7,6 +7,14 @@ defmodule Stingray.Application do
 
   @impl true
   def start(_type, _args) do
+    data_directory =
+      Application.fetch_env!(:stingray, :data_directory)
+      |> Path.expand
+
+    File.mkdir_p(data_directory)
+
+    database_directory = Path.join(data_directory, "settings")
+
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Stingray.Supervisor]
@@ -16,6 +24,7 @@ defmodule Stingray.Application do
         # Children for all targets
         # Starts a worker by calling: Stingray.Worker.start_link(arg)
         # {Stingray.Worker, arg},
+        {CubDB, [name: :settings, data_dir: database_directory]}
       ] ++ children(target())
 
     Supervisor.start_link(children, opts)
