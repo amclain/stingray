@@ -80,16 +80,6 @@ config :mdns_lite,
       transport: "tcp",
       port: 22
     },
-    %{
-      protocol: "sftp-ssh",
-      transport: "tcp",
-      port: 22
-    },
-    %{
-      protocol: "epmd",
-      transport: "tcp",
-      port: 4369
-    }
   ]
 
 # Import target specific config. This must remain at the bottom
