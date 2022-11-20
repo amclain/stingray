@@ -49,7 +49,31 @@ defmodule Stringray.Target.Test do
     end
   end
 
-  it "can list targets"
+  it "lists targets in numerical order" do
+    Target.add(5, :target_5, "Target 5", "ttyUSB5")
+    Target.add(3, :target_3, "Target 3", "ttyUSB3")
+
+    expect Target.list |> to(eq [
+      %Target{
+        number:      target_number(),
+        id:          target_id(),
+        name:        target_name(),
+        serial_port: target_serial_port(),
+      },
+      %Target{
+        number:      3,
+        id:          :target_3,
+        name:        "Target 3",
+        serial_port: "ttyUSB3",
+      },
+      %Target{
+        number:      5,
+        id:          :target_5,
+        name:        "Target 5",
+        serial_port: "ttyUSB5",
+      },
+    ])
+  end
 
   it "can remove a target"
 end

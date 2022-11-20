@@ -77,4 +77,14 @@ defmodule Stingray.Target do
         end
     end
   end
+
+  @doc """
+  List targets managed by Stingray.
+
+  This list is ordered by ascending target number.
+  """
+  @spec list() :: [t]
+  def list do
+    CubDB.get(:settings, :targets, [])
+  end
 end
