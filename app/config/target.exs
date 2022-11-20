@@ -20,7 +20,7 @@ config :shoehorn, init: [:nerves_runtime, :nerves_pack]
 
 config :nerves,
   erlinit: [
-    hostname_pattern: "nerves-%s"
+    hostname_pattern: "stingray-%s"
   ]
 
 # Configure the device for SSH IEx prompt access and firmware updates
@@ -70,7 +70,7 @@ config :mdns_lite,
   # because otherwise any of the devices may respond to nerves.local leading to
   # unpredictable behavior.
 
-  hosts: [:hostname, "nerves"],
+  hosts: [:hostname, "stingray"],
   ttl: 120,
 
   # Advertise the following services over mDNS.
