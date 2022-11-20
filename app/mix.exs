@@ -16,6 +16,7 @@ defmodule Stingray.MixProject do
       deps: deps(),
       docs: docs(),
       releases: [{@app, release()}],
+      test_coverage: [tool: ExCoveralls, test_task: "espec"],
       dialyzer: [
         ignore_warnings: "dialyzer.ignore.exs",
         list_unused_filters: true,
@@ -23,6 +24,11 @@ defmodule Stingray.MixProject do
         plt_file: {:no_warn, plt_file_path()},
       ],
       preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.show": :test,
         espec: :test,
       ],
       preferred_cli_target: [
@@ -43,8 +49,9 @@ defmodule Stingray.MixProject do
 
   defp aliases do
     [
-      "docs.show": ["docs", &docs_open/1],
-      test: "espec",
+      "coveralls.show": ["coveralls.html", &open("cover/excoveralls.html", &1)],
+      "docs.show": ["docs", &open("doc/index.html", &1)],
+      test: "coveralls",
     ]
   end
 
@@ -54,6 +61,7 @@ defmodule Stingray.MixProject do
       # Dependencies for all targets
       {:dialyxir, "~> 1.2", only: :dev, runtime: false},
       {:espec, "~> 1.9", only: :test},
+      {:excoveralls, "~> 0.15", only: :test},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:nerves, "~> 1.9", runtime: false},
       {:shoehorn, "~> 0.9"},
@@ -100,13 +108,13 @@ defmodule Stingray.MixProject do
     |> Path.expand()
   end
 
-  defp docs_open(_args) do
-    System.cmd(open_command(), ["doc/index.html"])
-  end
+  # Open a file with the default application for its type.
+  defp open(file, _args) do
+    open_command =
+      System.find_executable("xdg-open") # Linux
+      || System.find_executable("open")  # Mac
+      || raise "Could not find executable 'open' or 'xdg-open'"
 
-  defp open_command() do
-    System.find_executable("xdg-open") # Linux
-    || System.find_executable("open")  # Mac
-    || raise "Could not find executable 'open' or 'xdg-open'"
+    System.cmd(open_command, [file])
   end
 end
