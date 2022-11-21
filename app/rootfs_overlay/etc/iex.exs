@@ -14,4 +14,6 @@ NervesMOTD.print(logo: logo)
 # Add Toolshed helpers to the IEx session
 use Toolshed
 
+import Stingray, only: [console: 1]
+
 alias Stingray.Target
