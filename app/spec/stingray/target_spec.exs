@@ -96,4 +96,59 @@ defmodule Stringray.Target.Test do
       expect Target.list |> should(eq [shared.target])
     end
   end
+
+  describe "set properties of a target" do
+    specify "by target id" do
+      changed_target = %Target{
+        number:      1,
+        id:          :changed_target,
+        name:        "New name",
+        serial_port: "ttyNew0",
+      }
+
+      expect Target.set(
+        target_id(),
+        id: :changed_target,
+        name: "New name",
+        serial_port: "ttyNew0"
+      )
+      |> to(eq {:ok, changed_target})
+
+      expect Target.list() |> to(eq [changed_target])
+    end
+
+    specify "by target handle" do
+      changed_target = %Target{
+        number:      1,
+        id:          :changed_target,
+        name:        "New name",
+        serial_port: "ttyNew0",
+      }
+
+      expect Target.set(
+        target_id(),
+        id: :changed_target,
+        name: "New name",
+        serial_port: "ttyNew0"
+      )
+      |> to(eq {:ok, changed_target})
+
+      expect Target.list() |> to(eq [changed_target])
+    end
+
+    it "returns an error if the target ID doesn't exist" do
+      expect Target.set(:invalid_target, name: "New name")
+      |> to(eq {:error, :target_not_found})
+    end
+
+    it "returns an error if the target handle doesn't exist" do
+      expect Target.set(%Target{}, name: "New name")
+      |> to(eq {:error, :target_not_found})
+    end
+
+    it "ignores target properties that don't exist" do
+      expect Target.set(shared.target, invalid: "Can't set this")
+      |> to(eq {:ok, shared.target})
+    end
+  end
 end

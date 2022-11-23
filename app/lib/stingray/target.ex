@@ -70,7 +70,7 @@ defmodule Stingray.Target do
             {:error, :target_exists}
 
           _ ->
-            targets = [target | targets] |> Enum.sort(& &1.number < &2.number)
+            targets = add_sorted_target(targets, target)
             CubDB.put(:settings, :targets, targets)
 
             {:ok, target}
@@ -116,5 +116,45 @@ defmodule Stingray.Target do
           {{:ok, target}, new_targets}
       end        
     end)
+  end
+
+  @doc """
+  Set one or more properties of a target.
+  """
+  @spec set(target :: atom | t, properties :: [keyword]) ::
+      {:ok, t}
+    | {:error, :target_not_found}
+  def set(target = %__MODULE__{}, properties), do: set(target.id, properties)
+  def set(id, properties) do
+    CubDB.get_and_update(:settings, :targets, fn targets ->
+      targets = targets || []
+
+      case Enum.find(targets, & id == &1.id) do
+        nil ->
+          {{:error, :target_not_found}, targets}
+
+        existing_target ->
+          properties_map = Enum.into(properties, %{})
+
+          new_target =
+            existing_target
+            |> Map.from_struct
+            |> Map.merge(properties_map)
+
+          new_target = struct(__MODULE__, new_target)
+
+          new_targets =
+            targets
+            |> List.delete(existing_target)
+            |> add_sorted_target(new_target)
+
+          {{:ok, new_target}, new_targets}
+      end
+    end)
+  end
+
+  defp add_sorted_target(targets, new_target) do
+    [new_target | targets]
+    |> Enum.sort(& &1.number < &2.number)
   end
 end
