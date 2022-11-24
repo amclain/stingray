@@ -39,50 +39,50 @@ defmodule Stingray.Target do
     | {:error, :serial_port_not_string}
     | {:error, :invalid_baud}
     | {:error, :target_exists}
+  def add(number, _id, _name, _serial_port, _baud)
+    when not is_integer(number) or number < 1, do:
+      {:error, :number_not_positive}
+
+  def add(_number, id, _name, _serial_port, _baud)
+    when not is_atom(id) or is_nil(id), do:
+      {:error, :id_not_atom}
+
+  def add(_number, _id, name, _serial_port, _baud) when not is_binary(name), do:
+    {:error, :name_not_string}
+
+  def add(_number, _id, _name, serial_port, _baud) when not is_binary(serial_port), do:
+    {:error, :serial_port_not_string}
+
+  def add(_number, _id, _name, _serial_port, baud)
+    when not is_integer(baud) or baud < 1, do:
+      {:error, :invalid_baud}
+
   def add(number, id, name, serial_port, baud) do
-    cond do
-      !is_integer(number) || number < 1 ->
-        {:error, :number_not_positive}
+    target = %__MODULE__{
+      id:          id,
+      name:        name,
+      number:      number,
+      serial_port: serial_port,
+      baud:        baud,
+    }
 
-      !is_atom(id) ->
-        {:error, :id_not_atom}
+    targets = CubDB.get(:settings, :targets, [])
 
-      !is_binary(name) ->
-        {:error, :name_not_string}
+    target_exists? =
+      !!Enum.find(targets, fn t ->
+        t.id     == target.id ||
+        t.number == target.number
+      end)
 
-      !is_binary(serial_port) ->
-        {:error, :serial_port_not_string}
-
-      !is_integer(baud) || baud < 1 ->
-        {:error, :invalid_baud}
-
+    case target_exists? do
       true ->
-        target = %__MODULE__{
-          id:          id,
-          name:        name,
-          number:      number,
-          serial_port: serial_port,
-          baud:        baud,
-        }
+        {:error, :target_exists}
 
-        targets = CubDB.get(:settings, :targets, [])
+      _ ->
+        targets = add_sorted_target(targets, target)
+        CubDB.put(:settings, :targets, targets)
 
-        target_exists? =
-          !!Enum.find(targets, fn t ->
-            t.id == target.id ||
-            t.number == target.number
-          end)
-
-        case target_exists? do
-          true ->
-            {:error, :target_exists}
-
-          _ ->
-            targets = add_sorted_target(targets, target)
-            CubDB.put(:settings, :targets, targets)
-
-            {:ok, target}
-        end
+        {:ok, target}
     end
   end
 
