@@ -24,7 +24,7 @@ defmodule Stingray.Console.Test do
 
   it "can open a console by target ID" do
     allow Stingray.Console.Server |> to(accept :open, fn serial_port, baud ->
-      expect serial_port |> to(eq "ttyBogus0")
+      expect serial_port |> to(eq "/dev/ttyBogus0")
       expect baud        |> to(eq 115200)
 
       :"do not show this result in output"
@@ -40,7 +40,7 @@ defmodule Stingray.Console.Test do
 
   it "can open a console with a target handle" do
     allow Stingray.Console.Server |> to(accept :open, fn serial_port, baud ->
-      expect serial_port |> to(eq "ttyBogus0")
+      expect serial_port |> to(eq "/dev/ttyBogus0")
       expect baud        |> to(eq 115200)
 
       :"do not show this result in output"

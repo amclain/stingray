@@ -24,8 +24,8 @@ defmodule Stingray.Console.Server do
   This function captures `stdin` for the duration of the console connection.
 
   ## Args
-  - `serial_port` - File name of the serial port the target is connected to \
-                    (`ttyUSB0`).
+  - `serial_port` - Absolute file path of the serial port the target is \
+                    connected to (`/dev/ttyUSB0`).
   - `baud`        - Baud rate of the serial connection to the target (`115200`).
   """
   @spec open(serial_port :: String.t, baud :: non_neg_integer) ::
@@ -42,16 +42,14 @@ defmodule Stingray.Console.Server do
 
   @impl GenServer
   def init({serial_port, baud}) do
-    serial_device_path = Path.join("/dev", serial_port)
-
-    case File.exists?(serial_device_path) do
+    case File.exists?(serial_port) do
       false ->
-        {:error, :serial_port_not_found, serial_device_path}
+        {:error, :serial_port_not_found}
 
       _ ->
         state = %State{
           baud: baud,
-          serial_device_path: serial_device_path,
+          serial_device_path: serial_port,
         }
 
         {:ok, state, {:continue, :init}}
