@@ -33,7 +33,7 @@ defmodule Stingray.Console do
 
     case File.exists?(device_path) do
       false -> puts_error("Serial port `#{device_path}` not found")
-      _     -> Stingray.Console.Server.open(target.serial_port, 115200)
+      _     -> Stingray.Console.Server.open(target.serial_port, target.baud)
     end
 
     IEx.dont_display_result

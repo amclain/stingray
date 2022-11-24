@@ -8,9 +8,16 @@ defmodule Stingray.Console.Test do
   let :target_id,          do: :my_target
   let :target_name,        do: "My Target"
   let :target_serial_port, do: "ttyBogus0"
+  let :target_baud,        do: 115200
 
   before do
-    {:ok, target} = Target.add(target_number(), target_id(), target_name(), target_serial_port())
+    {:ok, target} = Target.add(
+      target_number(),
+      target_id(),
+      target_name(),
+      target_serial_port(),
+      target_baud()
+    )
 
     {:shared, target: target}
   end

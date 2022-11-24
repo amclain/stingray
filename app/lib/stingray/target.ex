@@ -10,6 +10,7 @@ defmodule Stingray.Target do
     :name,
     :number,
     :serial_port,
+    :baud
   ]
 
   @doc """
@@ -22,20 +23,23 @@ defmodule Stingray.Target do
   - `name`        - A human-readable name.
   - `serial_port` - File name of the serial port the target is connected to \
                     (`ttyUSB0`).
+  - `baud`        - Baud rate of the serial port the target is connected to.
   """
   @spec add(
-    number :: pos_integer,
-    id :: atom,
-    name :: String.t,
-    serial_port :: String.t
+    number      :: pos_integer,
+    id          :: atom,
+    name        :: String.t,
+    serial_port :: String.t,
+    baud        :: non_neg_integer
   ) ::
       {:ok, t}
     | {:error, :id_not_atom}
     | {:error, :name_not_string}
     | {:error, :number_not_positive}
     | {:error, :serial_port_not_string}
+    | {:error, :invalid_baud}
     | {:error, :target_exists}
-  def add(number, id, name, serial_port) do
+  def add(number, id, name, serial_port, baud) do
     cond do
       !is_integer(number) || number < 1 ->
         {:error, :number_not_positive}
@@ -49,12 +53,16 @@ defmodule Stingray.Target do
       !is_binary(serial_port) ->
         {:error, :serial_port_not_string}
 
+      !is_integer(baud) || baud < 1 ->
+        {:error, :invalid_baud}
+
       true ->
         target = %__MODULE__{
-          id: id,
-          name: name,
-          number: number,
+          id:          id,
+          name:        name,
+          number:      number,
           serial_port: serial_port,
+          baud:        baud,
         }
 
         targets = CubDB.get(:settings, :targets, [])
