@@ -73,6 +73,12 @@ defmodule Stingray.Console.Server do
   end
 
   @impl GenServer
+  def handle_call({:command, data}, _from, state) do
+    response = di(Port).command(state.port, data)
+    {:reply, response, state}
+  end
+
+  @impl GenServer
   def handle_call(:get_port, _from, state) do
     {:reply, state.port, state}
   end
@@ -90,21 +96,28 @@ defmodule Stingray.Console.Server do
   defp attach(pid) do
     port = GenServer.call(pid, :get_port)
 
-    wait_for_input_and_send(port)
+    wait_for_input_and_send(port, pid)
 
     IEx.dont_display_result
   end
 
-  defp wait_for_input_and_send(port) do
+  defp wait_for_input_and_send(port, pid) do
     data = di(IO).gets("")
 
-    case Stingray.Console.CommandParser.parse(data) do
-      :passthrough ->
-        di(Port).command(port, data)
-        wait_for_input_and_send(port)
-      
-      :exit ->
-        IO.puts "\e[0;33m<== Console closed ==>\e[0m"
-    end
+    result =
+      case Stingray.Console.CommandParser.parse(data) do
+        :passthrough ->
+          GenServer.call(pid, {:command, data})
+
+        :exit ->
+          stingray_puts "Console closed"
+          :break
+      end
+
+    unless result == :break, do: wait_for_input_and_send(port, pid)
+  end
+
+  defp stingray_puts(line) do
+    IO.puts "\e[0;33m<== #{line} ==>\e[0m"
   end
 end
