@@ -98,11 +98,13 @@ defmodule Stingray.Console.Server do
   defp wait_for_input_and_send(port) do
     data = di(IO).gets("")
 
-    if data == "#exit\n" || data == "#q\n" do
-      IO.puts "\e[0;33m<== Console closed ==>\e[0m"
-    else
-      di(Port).command(port, data)
-      wait_for_input_and_send(port)
+    case Stingray.Console.CommandParser.parse(data) do
+      :passthrough ->
+        di(Port).command(port, data)
+        wait_for_input_and_send(port)
+      
+      :exit ->
+        IO.puts "\e[0;33m<== Console closed ==>\e[0m"
     end
   end
 end
