@@ -46,6 +46,21 @@ defmodule DI do
     inject(target_module, injected_module)
   end
 
+  @doc """
+  Revert this dependency to the original module.
+
+  This function is idempotent and will not fail if DI already points to the
+  original module.
+  """
+  @spec revert(module :: module) :: any
+  def revert(module) do
+    ensure_ets_is_running()
+
+    :ets.delete(:di, module)
+
+    :ok
+  end
+
   defp ensure_ets_is_running do
     case :ets.whereis(:di) do
       :undefined -> :ets.new(:di, [:public, :named_table, read_concurrency: true])
