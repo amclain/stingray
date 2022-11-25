@@ -4,6 +4,7 @@ defmodule Stingray.Console.Server do
   """
 
   use GenServer
+  use DI
 
   defmodule State do
     @moduledoc false
@@ -58,7 +59,7 @@ defmodule Stingray.Console.Server do
 
   @impl GenServer
   def handle_continue(:init, state) do
-    port = Port.open(
+    port = di(Port).open(
       {:spawn, "picocom -b #{state.baud} #{state.serial_device_path}"},
       [:use_stdio, :stderr_to_stdout]
     )
@@ -68,7 +69,7 @@ defmodule Stingray.Console.Server do
 
   @impl GenServer
   def terminate(_reason, state) do
-    Port.close(state.port)
+    di(Port).close(state.port)
   end
 
   @impl GenServer
@@ -95,12 +96,12 @@ defmodule Stingray.Console.Server do
   end
 
   defp wait_for_input_and_send(port) do
-    data = IO.gets("")
+    data = di(IO).gets("")
 
     if data == "#exit\n" || data == "#q\n" do
       IO.puts "\e[0;33m<== Console closed ==>\e[0m"
     else
-      Port.command(port, data)
+      di(Port).command(port, data)
       wait_for_input_and_send(port)
     end
   end
