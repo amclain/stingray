@@ -44,7 +44,7 @@ defmodule Stingray.Console.Server do
   def init({serial_port, baud}) do
     case File.exists?(serial_port) do
       false ->
-        {:error, :serial_port_not_found}
+        {:stop, "Serial port not found: `#{serial_port}`"}
 
       _ ->
         state = %State{
