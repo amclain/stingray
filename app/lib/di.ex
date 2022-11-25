@@ -17,10 +17,12 @@ defmodule DI do
   """
   @spec di(module :: module) :: module
   def di(module) do
-    ensure_agent_is_running()
+    ensure_ets_is_running()
 
-    Agent.get(__MODULE__, & &1)
-    |> Map.get(module, module)
+    case :ets.lookup(:di, module) do
+      []                     -> module
+      [{_, injected_module}] -> injected_module
+    end
   end
 
   @doc """
@@ -28,12 +30,9 @@ defmodule DI do
   """
   @spec inject(target_module :: module, injected_module :: module) :: any
   def inject(target_module, injected_module) when is_atom(injected_module) do
-    ensure_agent_is_running()
+    ensure_ets_is_running()
 
-    Agent.get_and_update(__MODULE__, fn mappings ->
-      new_mappings = Map.put(mappings, target_module, injected_module)
-      {new_mappings, new_mappings}
-    end)
+    :ets.insert(:di, {target_module, injected_module})
 
     :ok
   end
@@ -47,20 +46,10 @@ defmodule DI do
     inject(target_module, injected_module)
   end
 
-  defp ensure_agent_is_running do
-    case Process.whereis(__MODULE__) do
-      nil ->
-        start_agent()
-
-      pid ->
-        case Process.alive?(pid) do
-          false -> start_agent()
-          _     -> :noop
-        end
+  defp ensure_ets_is_running do
+    case :ets.whereis(:di) do
+      :undefined -> :ets.new(:di, [:public, :named_table, read_concurrency: true])
+      table_id   -> table_id
     end
-  end
-
-  defp start_agent do
-    {:ok, _pid} = Agent.start_link(fn -> %{} end, name: __MODULE__)
   end
 end
