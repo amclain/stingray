@@ -25,11 +25,32 @@ defmodule Stringray.Target.Test do
     specify do
       expect Target.add(2, :my_new_target, "My New Target", "ttyUSB0", 115200)|> to(eq \
         {:ok, %Target{
-          number:      2,
-          id:          :my_new_target,
-          name:        "My New Target",
-          serial_port: "ttyUSB0",
-          baud:        115200,
+          number:               2,
+          id:                   :my_new_target,
+          name:                 "My New Target",
+          serial_port:          "ttyUSB0",
+          baud:                 115200,
+          uboot_console_string: nil,
+        }
+      })
+    end
+
+    specify "with a U-Boot console string" do
+      expect Target.add(
+        2,
+        :my_new_target,
+        "My New Target",
+        "ttyUSB0",
+        115200,
+        uboot_console_string: "st1ngr4y"
+      )|> to(eq \
+        {:ok, %Target{
+          number:               2,
+          id:                   :my_new_target,
+          name:                 "My New Target",
+          serial_port:          "ttyUSB0",
+          baud:                 115200,
+          uboot_console_string: "st1ngr4y",
         }
       })
     end
@@ -72,29 +93,32 @@ defmodule Stringray.Target.Test do
 
   it "lists targets in numerical order" do
     Target.add(5, :target_5, "Target 5", "ttyUSB5", 9600)
-    Target.add(3, :target_3, "Target 3", "ttyUSB3", 115200)
+    Target.add(3, :target_3, "Target 3", "ttyUSB3", 115200, uboot_console_string: "st1ngr4y")
 
     expect Target.list |> to(eq [
       %Target{
-        number:      target_number(),
-        id:          target_id(),
-        name:        target_name(),
-        serial_port: target_serial_port(),
-        baud:        target_baud(),
+        number:               target_number(),
+        id:                   target_id(),
+        name:                 target_name(),
+        serial_port:          target_serial_port(),
+        baud:                 target_baud(),
+        uboot_console_string: nil,
       },
       %Target{
-        number:      3,
-        id:          :target_3,
-        name:        "Target 3",
-        serial_port: "ttyUSB3",
-        baud:        115200,
+        number:               3,
+        id:                   :target_3,
+        name:                 "Target 3",
+        serial_port:          "ttyUSB3",
+        baud:                 115200,
+        uboot_console_string: "st1ngr4y",
       },
       %Target{
-        number:      5,
-        id:          :target_5,
-        name:        "Target 5",
-        serial_port: "ttyUSB5",
-        baud:        9600,
+        number:               5,
+        id:                   :target_5,
+        name:                 "Target 5",
+        serial_port:          "ttyUSB5",
+        baud:                 9600,
+        uboot_console_string: nil,
       },
     ])
   end
@@ -114,19 +138,21 @@ defmodule Stringray.Target.Test do
   describe "set properties of a target" do
     specify "by target id" do
       changed_target = %Target{
-        number:      1,
-        id:          :changed_target,
-        name:        "New name",
-        serial_port: "ttyNew0",
-        baud:        115200,
+        number:               1,
+        id:                   :changed_target,
+        name:                 "New name",
+        serial_port:          "ttyNew0",
+        baud:                 9600,
+        uboot_console_string: "st1ngr4y",
       }
 
       expect Target.set(
         target_id(),
-        id:          :changed_target,
-        name:        "New name",
-        serial_port: "ttyNew0",
-        baud:        115200
+        id:                   :changed_target,
+        name:                 "New name",
+        serial_port:          "ttyNew0",
+        baud:                 9600,
+        uboot_console_string: "st1ngr4y"
       )
       |> to(eq {:ok, changed_target})
 
@@ -135,19 +161,21 @@ defmodule Stringray.Target.Test do
 
     specify "by target handle" do
       changed_target = %Target{
-        number:      1,
-        id:          :changed_target,
-        name:        "New name",
-        serial_port: "ttyNew0",
-        baud:        115200,
+        number:               1,
+        id:                   :changed_target,
+        name:                 "New name",
+        serial_port:          "ttyNew0",
+        baud:                 9600,
+        uboot_console_string: "st1ngr4y",
       }
 
       expect Target.set(
         target_id(),
-        id:          :changed_target,
-        name:        "New name",
-        serial_port: "ttyNew0",
-        baud:        115200
+        id:                   :changed_target,
+        name:                 "New name",
+        serial_port:          "ttyNew0",
+        baud:                 9600,
+        uboot_console_string: "st1ngr4y"
       )
       |> to(eq {:ok, changed_target})
 

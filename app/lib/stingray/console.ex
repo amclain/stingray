@@ -29,12 +29,7 @@ defmodule Stingray.Console do
   end
 
   def open(target = %Target{}) do
-    serial_device_path = Path.join("/dev", target.serial_port)
-
-    case File.exists?(serial_device_path) do
-      false -> puts_error("Serial port `#{serial_device_path}` not found")
-      _     -> Stingray.Console.Server.open(serial_device_path, target.baud)
-    end
+    Stingray.Console.Server.open(target)
 
     IEx.dont_display_result
   end
