@@ -10,14 +10,28 @@ defmodule Stingray.Console.Server do
     @moduledoc false
 
     defstruct [
+      # Handle to the Elixir Port that manages the target's console.
+      :port,
       # Baud rate of the serial port. Default 115200.
       :baud,
-      # Handle to the Elixir Port.
-      :port,
       # Absolute path of the serial port device file (`/dev/ttyUSB0`).
       :serial_device_path,
+      # State machine for rebooting and entering U-Boot.
+      # Values:
+      #   - nil          - Inactive. Not trying to enter U-Boot.
+      #   - :booting     - Rebooting and searching for U-Boot to load.
+      #   - :uboot_found - Detected the U-Boot boot stage has started.
+      #   - :entering    - Detected the prompt to enter U-Boot and attempting
+      #                    to access the U-Boot console.
+      :uboot_stage,
+      # Ref of the timer that tries to enter the U-Boot console.
+      :uboot_prompt_timer,
+      # Ref of the timer that tracks the command timeout if U-Boot can't be found.
+      :uboot_exipration_timer,
     ]
   end
+
+  @uboot_expiration_in_ms 60_000
 
   @doc """
   Open a console to a target.
@@ -49,9 +63,10 @@ defmodule Stingray.Console.Server do
 
       _ ->
         state = %State{
-          baud: baud,
+          baud:               baud,
           serial_device_path: serial_port,
         }
+        |> clear_uboot_state()
 
         {:ok, state, {:continue, :init}}
     end
@@ -84,8 +99,79 @@ defmodule Stingray.Console.Server do
   end
 
   @impl GenServer
+  def handle_call(:uboot, _from, state) when not is_nil(state.uboot_stage) do
+    stingray_puts("Already booting to U-Boot")
+    {:reply, {:error, :busy}, state}
+  end
+
+  @impl GenServer
+  def handle_call(:uboot, _from, state) do
+    stingray_puts "Launching U-Boot console"
+
+    uboot_exipration_timer =
+      Process.send_after(self(), :uboot_timer_expired, @uboot_expiration_in_ms)
+
+    state = %State{
+      state |
+      uboot_stage:            :booting,
+      uboot_exipration_timer: uboot_exipration_timer,
+    }
+
+    di(Port).command(state.port, "\n")
+    di(Port).command(state.port, "reboot\n")
+
+    {:reply, :ok, state}
+  end
+
+  @impl GenServer
+  def handle_info(:uboot_prompt_timer, state) do
+    di(Port).command(state.port, "\n")
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_info(:uboot_timer_expired, state) do
+    stingray_puts "U-Boot timed out"
+
+    :timer.cancel(state.uboot_prompt_timer)
+    state = clear_uboot_state(state)
+
+    {:noreply, state}
+  end
+
+  @impl GenServer
   def handle_info({_port, {:data, console_data}}, state) do
     IO.write console_data
+
+    line = to_string(console_data)
+
+    state =
+      cond do
+        state.uboot_stage == :booting && String.match?(line, ~r/^U-Boot /m) ->
+          {:ok, timer} = :timer.send_interval(100, :uboot_prompt_timer)
+
+          %State{state | uboot_stage: :uboot_found, uboot_prompt_timer: timer}
+
+        state.uboot_stage == :uboot_found
+          && String.match?(line, ~r/^Hit any key to stop autoboot:/m) ->
+            %State{state | uboot_stage: :entering}
+
+        state.uboot_stage == :entering && String.match?(line, ~r/^=>/m) ->
+          Process.cancel_timer(state.uboot_exipration_timer)
+          :timer.cancel(state.uboot_prompt_timer)
+          clear_uboot_state(state)
+
+        state.uboot_stage && String.match?(line, ~r/^Starting kernel \.\.\./m) ->
+          stingray_puts "Aborted. U-Boot prompt not detected"
+
+          Process.cancel_timer(state.uboot_exipration_timer)
+          :timer.cancel(state.uboot_prompt_timer)
+          clear_uboot_state(state)
+
+        true ->
+          state
+      end
+
     {:noreply, state}
   end
 
@@ -112,6 +198,9 @@ defmodule Stingray.Console.Server do
         :exit ->
           stingray_puts "Console closed"
           :break
+
+        :uboot ->
+          GenServer.call(pid, :uboot)
       end
 
     unless result == :break, do: wait_for_input_and_send(port, pid)
@@ -119,5 +208,14 @@ defmodule Stingray.Console.Server do
 
   defp stingray_puts(line) do
     IO.puts "\e[0;33m<== #{line} ==>\e[0m"
+  end
+
+  defp clear_uboot_state(state) do
+    %State{
+      state |
+      uboot_stage:            nil,
+      uboot_prompt_timer:     nil,
+      uboot_exipration_timer: nil,
+    }
   end
 end

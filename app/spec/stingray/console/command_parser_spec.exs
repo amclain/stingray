@@ -15,4 +15,8 @@ defmodule Stingray.Console.CommandParser.Test do
     expect CommandParser.parse("#exit\n") |> to(eq :exit)
     expect CommandParser.parse("#q\n")    |> to(eq :exit)
   end
+
+  specify "uboot" do
+    expect CommandParser.parse("#uboot\n") |> to(eq :uboot)
+  end
 end
