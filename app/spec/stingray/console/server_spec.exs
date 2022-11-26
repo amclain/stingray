@@ -1,6 +1,7 @@
 defmodule Stingray.Console.Server.Test do
   use ESpec
 
+  alias Stingray.Target
   alias Stingray.Console.Server
 
   it "can open a console server" do
@@ -18,8 +19,10 @@ defmodule Stingray.Console.Server.Test do
 
     allow File |> to(accept :exists?, fn "/dev/ttyTest0" -> true end)
 
+    {:ok, target} = Target.add(1, :test_target, "Test target", "ttyTest0", 115200)
+
     output = capture_io(fn ->
-      expect Server.open("/dev/ttyTest0", 115200)
+      expect Server.open(target)
       |> to(eq :"do not show this result in output")
     end)
 

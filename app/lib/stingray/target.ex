@@ -3,15 +3,23 @@ defmodule Stingray.Target do
   A hardware target connected to the Stingray controller.
   """
 
-  @type t :: %__MODULE__{}
-  
   defstruct [
     :id,
     :name,
     :number,
     :serial_port,
-    :baud
+    :baud,
+    :uboot_console_string,
   ]
+
+  @type t :: %__MODULE__{
+    id:                   atom,
+    name:                 String.t,
+    number:               pos_integer,
+    serial_port:          String.t,
+    baud:                 pos_integer,
+    uboot_console_string: String.t,
+  }
 
   @doc """
   Add a target to be managed by Stingray.
@@ -24,13 +32,18 @@ defmodule Stingray.Target do
   - `serial_port` - File name of the serial port the target is connected to \
                     (`ttyUSB0`).
   - `baud`        - Baud rate of the serial port the target is connected to.
+
+  ## Options
+  - `:uboot_console_string` - The string the target uses to stop U-Boot's \
+                              autoboot and enter the console.
   """
   @spec add(
     number      :: pos_integer,
     id          :: atom,
     name        :: String.t,
     serial_port :: String.t,
-    baud        :: non_neg_integer
+    baud        :: non_neg_integer,
+    opts        :: [uboot_console_string: String.t]
   ) ::
       {:ok, t}
     | {:error, :id_not_atom}
@@ -39,31 +52,33 @@ defmodule Stingray.Target do
     | {:error, :serial_port_not_string}
     | {:error, :invalid_baud}
     | {:error, :target_exists}
-  def add(number, _id, _name, _serial_port, _baud)
+  def add(number, id, name, serial_port, baud, opts \\ [])
+  def add(number, _id, _name, _serial_port, _baud, _opts)
     when not is_integer(number) or number < 1, do:
       {:error, :number_not_positive}
 
-  def add(_number, id, _name, _serial_port, _baud)
+  def add(_number, id, _name, _serial_port, _baud, _opts)
     when not is_atom(id) or is_nil(id), do:
       {:error, :id_not_atom}
 
-  def add(_number, _id, name, _serial_port, _baud) when not is_binary(name), do:
+  def add(_number, _id, name, _serial_port, _baud, _opts) when not is_binary(name), do:
     {:error, :name_not_string}
 
-  def add(_number, _id, _name, serial_port, _baud) when not is_binary(serial_port), do:
+  def add(_number, _id, _name, serial_port, _baud, _opts) when not is_binary(serial_port), do:
     {:error, :serial_port_not_string}
 
-  def add(_number, _id, _name, _serial_port, baud)
+  def add(_number, _id, _name, _serial_port, baud, _opts)
     when not is_integer(baud) or baud < 1, do:
       {:error, :invalid_baud}
 
-  def add(number, id, name, serial_port, baud) do
+  def add(number, id, name, serial_port, baud, opts) do
     target = %__MODULE__{
-      id:          id,
-      name:        name,
-      number:      number,
-      serial_port: serial_port,
-      baud:        baud,
+      id:                   id,
+      name:                 name,
+      number:               number,
+      serial_port:          serial_port,
+      baud:                 baud,
+      uboot_console_string: opts[:uboot_console_string]
     }
 
     targets = CubDB.get(:settings, :targets, [])
