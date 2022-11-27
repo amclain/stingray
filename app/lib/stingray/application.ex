@@ -7,6 +7,8 @@ defmodule Stingray.Application do
 
   @impl true
   def start(_type, _args) do
+    disable_bbb_heartbeat_led()
+
     data_directory =
       Application.fetch_env!(:stingray, :data_directory)
       |> Path.expand
@@ -49,5 +51,9 @@ defmodule Stingray.Application do
 
   def target() do
     Application.get_env(:stingray, :target)
+  end
+
+  defp disable_bbb_heartbeat_led do
+    File.write("/sys/class/leds/beaglebone:green:usr0/trigger", "none")
   end
 end
