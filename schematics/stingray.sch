@@ -1,0 +1,194 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title "Stingray BBB Cape"
+Date ""
+Rev ""
+Comp "Alex McLain"
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Transistor_BJT:MPSA42 Q?
+U 1 1 638C4A05
+P 5850 3850
+F 0 "Q?" H 6041 3896 50  0000 L CNN
+F 1 "MPSA29" H 6041 3805 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline" H 6050 3775 50  0001 L CIN
+F 3 "http://www.onsemi.com/pub_link/Collateral/MPSA42-D.PDF" H 5850 3850 50  0001 L CNN
+	1    5850 3850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Diode:1N4001 D?
+U 1 1 638C679D
+P 5300 3100
+F 0 "D?" V 5254 3180 50  0000 L CNN
+F 1 "1N4001" V 5345 3180 50  0000 L CNN
+F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 5300 2925 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 5300 3100 50  0001 C CNN
+	1    5300 3100
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 638CB959
+P 5950 4750
+F 0 "#PWR?" H 5950 4500 50  0001 C CNN
+F 1 "GND" H 5955 4577 50  0000 C CNN
+F 2 "" H 5950 4750 50  0001 C CNN
+F 3 "" H 5950 4750 50  0001 C CNN
+	1    5950 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 638CC0BA
+P 4600 2450
+F 0 "#PWR?" H 4600 2300 50  0001 C CNN
+F 1 "+3.3V" H 4615 2623 50  0000 C CNN
+F 2 "" H 4600 2450 50  0001 C CNN
+F 3 "" H 4600 2450 50  0001 C CNN
+	1    4600 2450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R?
+U 1 1 638D2F42
+P 5250 3850
+F 0 "R?" V 5045 3850 50  0000 C CNN
+F 1 "1k" V 5136 3850 50  0000 C CNN
+F 2 "" V 5290 3840 50  0001 C CNN
+F 3 "~" H 5250 3850 50  0001 C CNN
+	1    5250 3850
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R_US R?
+U 1 1 638D3687
+P 3900 4200
+F 0 "R?" V 3695 4200 50  0000 C CNN
+F 1 "1k" V 3786 4200 50  0000 C CNN
+F 2 "" V 3940 4190 50  0001 C CNN
+F 3 "~" H 3900 4200 50  0001 C CNN
+	1    3900 4200
+	0    1    1    0   
+$EndComp
+$Comp
+L Relay:G6EU K?
+U 1 1 638DA595
+P 6150 3100
+F 0 "K?" H 6580 3146 50  0000 L CNN
+F 1 "G6RL-1" H 6580 3055 50  0000 L CNN
+F 2 "Relay_THT:Relay_SPDT_Omron_G6E" H 7280 3070 50  0001 C CNN
+F 3 "https://www.omron.com/ecb/products/pdf/en-g6e.pdf" H 6150 3100 50  0001 C CNN
+	1    6150 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Transistor_BJT:2N3904 Q?
+U 1 1 638F3269
+P 4500 4200
+F 0 "Q?" H 4690 4246 50  0000 L CNN
+F 1 "2N3904" H 4690 4155 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline" H 4700 4125 50  0001 L CIN
+F 3 "https://www.onsemi.com/pub/Collateral/2N3903-D.PDF" H 4500 4200 50  0001 L CNN
+	1    4500 4200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 2650 5300 2650
+Wire Wire Line
+	5950 2650 5950 2800
+Connection ~ 4600 2650
+Wire Wire Line
+	4600 2450 4600 2650
+Wire Wire Line
+	5300 2950 5300 2650
+Connection ~ 5300 2650
+Wire Wire Line
+	5300 2650 5950 2650
+Wire Wire Line
+	5950 3400 5950 3500
+Wire Wire Line
+	5950 3500 5300 3500
+Wire Wire Line
+	5300 3500 5300 3250
+Connection ~ 5950 3500
+Wire Wire Line
+	5950 3500 5950 3650
+Connection ~ 4600 3850
+Wire Wire Line
+	4600 3850 4600 4000
+Wire Wire Line
+	5950 4050 5950 4550
+Wire Wire Line
+	4600 4400 4600 4550
+Wire Wire Line
+	4600 4550 5950 4550
+Connection ~ 5950 4550
+$Comp
+L Connector:Conn_01x01_Male J?
+U 1 1 63913718
+P 3250 4200
+F 0 "J?" H 3358 4381 50  0000 C CNN
+F 1 "GPIO_48" H 3358 4290 50  0000 C CNN
+F 2 "" H 3250 4200 50  0001 C CNN
+F 3 "~" H 3250 4200 50  0001 C CNN
+	1    3250 4200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3450 4200 3750 4200
+Wire Wire Line
+	5950 4550 5950 4750
+Wire Wire Line
+	5400 3850 5650 3850
+Wire Wire Line
+	4600 3850 5100 3850
+$Comp
+L Connector:Conn_01x02_Male J?
+U 1 1 6392355F
+P 7400 2650
+F 0 "J?" H 7372 2624 50  0000 R CNN
+F 1 "Target Board" H 7372 2533 50  0000 R CNN
+F 2 "" H 7400 2650 50  0001 C CNN
+F 3 "~" H 7400 2650 50  0001 C CNN
+	1    7400 2650
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	6450 2800 6450 2650
+Wire Wire Line
+	6450 2650 7200 2650
+Wire Wire Line
+	6350 3400 6350 3500
+Wire Wire Line
+	6350 3500 7050 3500
+Wire Wire Line
+	7050 3500 7050 2750
+Wire Wire Line
+	7050 2750 7200 2750
+Wire Wire Line
+	4050 4200 4300 4200
+Wire Wire Line
+	4600 2650 4600 2950
+Wire Wire Line
+	4600 3250 4600 3850
+$Comp
+L Device:R_US R?
+U 1 1 638D2382
+P 4600 3100
+F 0 "R?" H 4668 3146 50  0000 L CNN
+F 1 "100k" H 4668 3055 50  0000 L CNN
+F 2 "" V 4640 3090 50  0001 C CNN
+F 3 "~" H 4600 3100 50  0001 C CNN
+	1    4600 3100
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
