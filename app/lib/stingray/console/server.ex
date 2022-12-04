@@ -81,7 +81,7 @@ defmodule Stingray.Console.Server do
   def handle_continue(:init, state) do
     port = di(Port).open(
       {:spawn, "picocom -b #{state.target.baud} #{state.serial_device_path}"},
-      [:use_stdio, :stderr_to_stdout]
+      [:binary, :use_stdio, :stderr_to_stdout]
     )
 
     {:noreply, %State{state | port: port}}
