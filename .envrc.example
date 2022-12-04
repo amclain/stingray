@@ -1,1 +1,6 @@
-export STINGRAY_SYSTEM_PATH=""
+# Path to a local Stingray Nerves system. (optional)
+# export STINGRAY_SYSTEM_PATH=""
+
+# GitHub users who have SSH access to Stingray. (optional)
+# Separate users with a space or new line.
+# export SSH_GITHUB_USERS=""

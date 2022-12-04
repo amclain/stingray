@@ -29,23 +29,46 @@ config :nerves,
 # * See https://hexdocs.pm/ssh_subsystem_fwup/readme.html for firmware updates
 
 keys =
-  [
-    Path.join([System.user_home!(), ".ssh", "id_rsa.pub"]),
-    Path.join([System.user_home!(), ".ssh", "id_ecdsa.pub"]),
-    Path.join([System.user_home!(), ".ssh", "id_ed25519.pub"])
-  ]
-  |> Enum.filter(&File.exists?/1)
+  case System.get_env("SSH_GITHUB_USERS") do
+    nil ->
+      # Use a key on the local machine if it exists.
 
+      [
+        Path.join([System.user_home!(), ".ssh", "id_rsa.pub"]),
+        Path.join([System.user_home!(), ".ssh", "id_ecdsa.pub"]),
+        Path.join([System.user_home!(), ".ssh", "id_ed25519.pub"])
+      ]
+      |> Enum.filter(&File.exists?/1)
+      |> Enum.map(&File.read!/1)
+
+    github_users_string ->
+      # Use public SSH keys from GitHub.
+
+      users = String.split(github_users_string)
+
+      Enum.reduce(users, [], fn user, keys ->
+        keys ++
+        case System.cmd("curl", ["-s", "-f", "https://github.com/#{user}.keys"]) do
+          {response, 0} ->
+            response
+            |> String.split("\n")
+            |> Enum.filter(& &1 != "")
+
+          {_, _} ->
+            Mix.raise "Failed to get SSH keys from GitHub for user `#{user}`"
+        end
+      end)
+  end
+  
 if keys == [],
   do:
     Mix.raise("""
-    No SSH public keys found in ~/.ssh. An ssh authorized key is needed to
+    No SSH public keys found. An ssh authorized key is needed to
     log into the Nerves device and update firmware on it using ssh.
-    See your project's config.exs for this error message.
+    See your project's config/target.exs for this error message.
     """)
 
-config :nerves_ssh,
-  authorized_keys: Enum.map(keys, &File.read!/1)
+config :nerves_ssh, authorized_keys: keys
 
 # Configure the network using vintage_net
 # See https://github.com/nerves-networking/vintage_net for more information
