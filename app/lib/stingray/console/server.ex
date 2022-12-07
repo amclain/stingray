@@ -147,7 +147,11 @@ defmodule Stingray.Console.Server do
 
   @impl GenServer
   def handle_info({_port, {:data, console_data}}, state) do
-    IO.write console_data
+    # ASCII character 254 is invalid and causes the BEAM process to crash.
+    # This byte is received when a Nerves system reboots gracefully.
+    console_data
+    |> String.replace(<<254>>, "\n")
+    |> IO.write
 
     line = to_string(console_data)
 
