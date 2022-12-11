@@ -18,6 +18,9 @@ defmodule Stingray.Console.Server do
       :port,
       # Absolute path of the serial port device file (`/dev/ttyUSB0`).
       :serial_device_path,
+      # True when picocom is past its initialization output and is displaying
+      # output from the target.
+      :picocom_initialized,
       # State machine for rebooting and entering U-Boot.
       #
       # Values:
@@ -70,8 +73,9 @@ defmodule Stingray.Console.Server do
 
       _ ->
         state = %State{
-          target:             target,
-          serial_device_path: serial_device_path,
+          target:              target,
+          serial_device_path:  serial_device_path,
+          picocom_initialized: false,
         }
         |> clear_uboot_state()
 
@@ -149,16 +153,23 @@ defmodule Stingray.Console.Server do
 
   @impl GenServer
   def handle_info({_port, {:data, console_data}}, state) do
-    # ASCII character 254 is invalid and causes the BEAM process to crash.
-    # This byte is received when a Nerves system reboots gracefully.
-    console_data
-    |> String.replace(<<254>>, "\n")
-    |> IO.write
+    if state.picocom_initialized do
+      # ASCII character 254 is invalid and causes the BEAM process to crash.
+      # This byte is received when a Nerves system reboots gracefully.
+      console_data
+      |> String.replace(<<254>>, "\n")
+      |> IO.write
+    end
 
     line = to_string(console_data)
 
     state =
       cond do
+        state.picocom_initialized == false
+          && String.match?(line, ~r/^Terminal ready/m)->
+            stingray_puts state.target.name
+            %State{state | picocom_initialized: true}
+
         state.uboot_stage == :booting && String.match?(line, ~r/^U-Boot /m) ->
           # Use a longer delay if the console string is set, because it's
           # expected that someone will manually enter it or copy/paste it.
