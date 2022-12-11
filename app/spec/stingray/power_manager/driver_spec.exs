@@ -1,9 +1,11 @@
-defmodule Stingray.PowerManager.Test do
+defmodule Stingray.PowerManager.Driver.Test do
   use ESpec
 
   alias Stingray.PowerManager
 
   before do
+    DI.inject(Stingray.PowerManager, Stingray.PowerManager.Driver)
+
     DI.inject(Circuits.GPIO, quote do
       def open(_pin, :output, [initial_value: 1]),
         do: {:ok, self()}
