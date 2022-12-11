@@ -6,6 +6,8 @@ defmodule Stingray.Console.Server do
   use GenServer
   use DI
 
+  alias Stingray.PowerManager
+
   defmodule State do
     @moduledoc false
 
@@ -208,6 +210,18 @@ defmodule Stingray.Console.Server do
         :exit ->
           stingray_puts "Console closed"
           :break
+
+        {:power, :is_on?} ->
+          power_status = if PowerManager.power?, do: "on", else: "off"
+          stingray_puts "Target power is #{power_status}"
+
+        {:power, :off} ->
+          PowerManager.off
+          stingray_puts "Power off"
+
+        {:power, :on} ->
+          PowerManager.on
+          stingray_puts "Power on"
 
         :uboot ->
           GenServer.call(pid, :uboot)

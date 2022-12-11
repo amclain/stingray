@@ -7,8 +7,11 @@ defmodule Stingray.Console do
   Console commands start with `#` followed by a keyword. They are available
   when attached to the console of a target.
 
-  - `#exit` - Close the console to the target.
-  - `#q`    - Close the console to the target.
+  - `#exit`   - Close the console to the target.
+  - `#off`    - Turn off power to the target.
+  - `#on`     - Turn on power to the target.
+  - `#power?` - Check if the target's power is on or off.
+  - `#q`      - Close the console to the target.
   """
 
   alias Stingray.Target

@@ -26,7 +26,7 @@ defmodule Stingray.Application do
         # Children for all targets
         # Starts a worker by calling: Stingray.Worker.start_link(arg)
         # {Stingray.Worker, arg},
-        {CubDB, [name: :settings, data_dir: database_directory]}
+        {CubDB, [name: :settings, data_dir: database_directory]},
       ] ++ children(target())
 
     Supervisor.start_link(children, opts)
@@ -46,6 +46,7 @@ defmodule Stingray.Application do
       # Children for all targets except host
       # Starts a worker by calling: Stingray.Worker.start_link(arg)
       # {Stingray.Worker, arg},
+      {Stingray.PowerManager, nil},
     ]
   end
 

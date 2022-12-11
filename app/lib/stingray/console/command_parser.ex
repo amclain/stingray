@@ -11,6 +11,7 @@ defmodule Stingray.Console.CommandParser do
   @spec parse(line :: String.t) ::
       :passthrough
     | :exit
+    | {:power, :is_on? | :off | :on}
     | :uboot
   def parse(line) when is_binary(line) do
     case String.starts_with?(line, "#") do
@@ -20,6 +21,9 @@ defmodule Stingray.Console.CommandParser do
   end
 
   defp do_parse("exit"),         do: :exit
+  defp do_parse("off"),          do: {:power, :off}
+  defp do_parse("on"),           do: {:power, :on}
+  defp do_parse("power?"),       do: {:power, :is_on?}
   defp do_parse("q"),            do: :exit
   defp do_parse("uboot"),        do: :uboot
   defp do_parse(_not_a_command), do: :passthrough
