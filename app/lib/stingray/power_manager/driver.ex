@@ -11,6 +11,8 @@ defmodule Stingray.PowerManager.Driver do
     @moduledoc false
 
     defstruct [
+      # Ref of the timer for cycling power.
+      :cycle_timer,
       # Handle to the Circuits.GPIO pin.
       :gpio_pin,
       # True if power is being supplied to the target by the power manager.
@@ -23,6 +25,11 @@ defmodule Stingray.PowerManager.Driver do
   @impl Stingray.PowerManager
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  end
+
+  @impl Stingray.PowerManager
+  def cycle(cycle_time_in_ms) do
+    GenServer.call(__MODULE__, {:cycle, cycle_time_in_ms})
   end
 
   @impl Stingray.PowerManager
@@ -50,11 +57,25 @@ defmodule Stingray.PowerManager.Driver do
     {:ok, gpio_pin} = di(Circuits.GPIO).open(@relay_pin, :output, initial_value: 1)
 
     state = %State{
-      gpio_pin: gpio_pin,
-      is_on:    false,
+      cycle_timer: nil,
+      gpio_pin:    gpio_pin,
+      is_on:       false,
     }
 
     {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_call({:cycle, _cycle_time_in_ms}, from, state) when not state.is_on,
+    do: handle_call(:on, from, state)
+
+  def handle_call({:cycle, cycle_time_in_ms}, _from, state) do
+    :ok = di(Circuits.GPIO).write(state.gpio_pin, 1)
+
+    cycle_timer = Process.send_after(self(), :cycle_timer, cycle_time_in_ms)
+    state       = %State{state | is_on: false, cycle_timer: cycle_timer}
+
+    {:reply, :ok, state}
   end
 
   @impl GenServer
@@ -64,15 +85,29 @@ defmodule Stingray.PowerManager.Driver do
 
   @impl GenServer
   def handle_call(:on, _from, state) do
+    if state.cycle_timer,
+      do: Process.cancel_timer(state.cycle_timer)
+
     :ok = di(Circuits.GPIO).write(state.gpio_pin, 0)
 
-    {:reply, :ok, %State{state | is_on: true}}
+    {:reply, :ok, %State{state | is_on: true, cycle_timer: nil}}
   end
 
   @impl GenServer
   def handle_call(:off, _from, state) do
+    if state.cycle_timer,
+      do: Process.cancel_timer(state.cycle_timer)
+
     :ok = di(Circuits.GPIO).write(state.gpio_pin, 1)
 
-    {:reply, :ok, %State{state | is_on: false}}
+    {:reply, :ok, %State{state | is_on: false, cycle_timer: nil}}
+  end
+
+  @impl GenServer
+  def handle_info(:cycle_timer, state) do
+    :ok   = di(Circuits.GPIO).write(state.gpio_pin, 0)
+    state = %State{state | is_on: true, cycle_timer: nil}
+
+    {:noreply, state}
   end
 end

@@ -17,6 +17,7 @@ defmodule Stingray.Console.CommandParser.Test do
   end
 
   specify "power" do
+    expect CommandParser.parse("#cycle\n")  |> to(eq {:power, :cycle})
     expect CommandParser.parse("#off\n")    |> to(eq {:power, :off})
     expect CommandParser.parse("#on\n")     |> to(eq {:power, :on})
     expect CommandParser.parse("#power?\n") |> to(eq {:power, :is_on?})

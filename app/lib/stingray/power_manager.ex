@@ -9,6 +9,13 @@ defmodule Stingray.PowerManager do
   @callback start_link(opts :: term) :: GenServer.on_start
 
   @doc """
+  Cycle a target's power off and on.
+
+  Issuing an on or off command will cancel the power cycle.
+  """
+  @callback cycle(cycle_time_in_ms :: non_neg_integer) :: :ok
+
+  @doc """
   Returns `true` if power is being supplied to the target.
   """
   @callback power?() :: boolean
@@ -35,6 +42,8 @@ defmodule Stingray.PowerManager do
   def child_spec(opts), do: %{id: __MODULE__, start: {__MODULE__, :start_link, [opts]}}
 
   def start_link(opts), do: di(__MODULE__).start_link(opts)
+
+  def cycle(cycle_time_in_ms \\ 2000), do: di(__MODULE__).cycle(cycle_time_in_ms)
 
   def power?, do: di(__MODULE__).power?
 

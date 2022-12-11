@@ -7,6 +7,9 @@ defmodule Stingray.PowerManager.Virtual do
   use Stingray.PowerManager
 
   @impl Stingray.PowerManager
+  def cycle(_cycle_time_in_ms), do: :ok
+
+  @impl Stingray.PowerManager
   def power?, do: true
   
   @impl Stingray.PowerManager

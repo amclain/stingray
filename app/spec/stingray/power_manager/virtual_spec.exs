@@ -16,4 +16,8 @@ defmodule Stingray.PowerManager.Vritual.Test do
     :ok = PowerManager.off
     expect PowerManager.power? |> to(eq true)
   end
+
+  it "fakes power cycling" do
+    expect PowerManager.cycle |> to(eq :ok)
+  end
 end
