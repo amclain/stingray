@@ -32,7 +32,7 @@ defmodule Stingray.PowerManager do
   end
 
   @doc false
-  def child_spec(opts), do: %{id: di(__MODULE__), start: {di(__MODULE__), :start_link, [opts]}}
+  def child_spec(opts), do: %{id: __MODULE__, start: {__MODULE__, :start_link, [opts]}}
 
   def start_link(opts), do: di(__MODULE__).start_link(opts)
 

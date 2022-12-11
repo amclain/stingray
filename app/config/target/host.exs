@@ -4,6 +4,13 @@ import Config
 
 config :stingray, data_directory: "./data"
 
+config :stingray, di: %{
+  compile: false,
+  mappings: [
+    {Stingray.PowerManager, Stingray.PowerManager.Virtual},
+  ]
+}
+
 config :stingray, io: %{
   relay_pin: -1,
 }

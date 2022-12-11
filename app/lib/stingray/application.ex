@@ -17,10 +17,6 @@ defmodule Stingray.Application do
 
     database_directory = Path.join(data_directory, "settings")
 
-    if target() == :host,
-      do:   DI.inject(Stingray.PowerManager, Stingray.PowerManager.Virtual),
-      else: DI.inject(Stingray.PowerManager, Stingray.PowerManager.Driver)
-
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Stingray.Supervisor]
