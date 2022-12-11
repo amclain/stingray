@@ -128,8 +128,7 @@ defmodule Stingray.Console.Server do
       uboot_exipration_timer: uboot_exipration_timer,
     }
 
-    di(Port).command(state.port, "\n")
-    di(Port).command(state.port, "reboot\n")
+    PowerManager.cycle
 
     {:reply, :ok, state}
   end
@@ -221,6 +220,10 @@ defmodule Stingray.Console.Server do
         :exit ->
           stingray_puts "Console closed"
           :break
+
+        {:power, :cycle} ->
+          stingray_puts "Cycling power"
+          PowerManager.cycle
 
         {:power, :is_on?} ->
           power_status = if PowerManager.power?, do: "on", else: "off"
