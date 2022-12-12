@@ -32,7 +32,7 @@ jobs:
     name: Type Check
     runs-on: ubuntu-22.04
     env:
-      MIX_TARGET: bbb_ci
+      MIX_TARGET: bbb
     steps:
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
@@ -59,6 +59,9 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
           mix deps.get --only dev
+        env:
+          ARTIFACT_GITHUB_USER: ${{ secrets.ARTIFACT_GITHUB_USER }}
+          ARTIFACT_GITHUB_TOKEN: ${{ secrets.ARTIFACT_GITHUB_TOKEN }}
         working-directory: app
       - name: Restore PLTs
         uses: actions/cache@v1
@@ -73,5 +76,5 @@ jobs:
         run: mix compile
         working-directory: app
       - name: Run dialyzer
-        run: mix dialyzer.ci
+        run: mix dialyzer
         working-directory: app

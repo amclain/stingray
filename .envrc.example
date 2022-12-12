@@ -1,3 +1,12 @@
+# GitHub credentials to access the nerves_system_stingray_bbb release artifact.
+#
+# Generate a GitHub token from:
+#   Settings -> Developer settings -> Personal access tokens -> Fine-grained tokens
+#
+# Allow read access to `code` and `metadata`.
+export ARTIFACT_GITHUB_USER=""
+export ARTIFACT_GITHUB_TOKEN=""
+
 # Path to a local Stingray Nerves system. (optional)
 # export STINGRAY_SYSTEM_PATH=""
 
