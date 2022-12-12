@@ -7,10 +7,10 @@ defmodule Stingray.Application do
 
   @impl true
   def start(_type, _args) do
-    disable_bbb_heartbeat_led()
-
-    Stingray.NFS.init
-    Stingray.NFS.start
+    if target() != :host do
+      disable_bbb_heartbeat_led()
+      Stingray.NFS.start
+    end
 
     data_directory =
       Application.fetch_env!(:stingray, :data_directory)
