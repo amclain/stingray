@@ -9,6 +9,9 @@ defmodule Stingray.Application do
   def start(_type, _args) do
     disable_bbb_heartbeat_led()
 
+    Stingray.NFS.init
+    Stingray.NFS.start
+
     data_directory =
       Application.fetch_env!(:stingray, :data_directory)
       |> Path.expand
