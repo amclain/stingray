@@ -3,8 +3,7 @@ defmodule Stingray.MixProject do
 
   @app :stingray
   @version "0.1.0"
-  @all_targets [:bbb, :bbb_ci]
-  @stingray_system_path System.get_env("STINGRAY_SYSTEM_PATH", "../../nerves_system_stingray_bbb")
+  @all_targets [:bbb]
 
   def project do
     [
@@ -34,7 +33,6 @@ defmodule Stingray.MixProject do
       ],
       preferred_cli_target: [
         dialyzer: :bbb,
-        "dialyzer.ci": :bbb_ci,
         run: :host,
         test: :host,
       ],
@@ -52,7 +50,6 @@ defmodule Stingray.MixProject do
   defp aliases do
     [
       "coveralls.show": ["coveralls.html", &open("cover/excoveralls.html", &1)],
-      "dialyzer.ci": "dialyzer",
       "docs.show": ["docs", &open("doc/index.html", &1)],
       test: "coveralls",
     ]
@@ -68,6 +65,7 @@ defmodule Stingray.MixProject do
       {:espec, "~> 1.9", only: :test},
       {:excoveralls, "~> 0.15", only: :test},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
+      {:jason, "~> 1.4"},
       {:nerves, "~> 1.9", runtime: false},
       {:shoehorn, "~> 0.9"},
       {:ring_logger, "~> 0.8"},
@@ -79,10 +77,29 @@ defmodule Stingray.MixProject do
       {:nerves_pack, "~> 0.7", targets: @all_targets},
 
       # Dependencies for specific targets
-      {:nerves_system_bbb, "~> 2.16", runtime: false, targets: :bbb_ci},
-      # {:nerves_system_stingray_bbb, git: "git@github.com:amclain/nerves_system_stringray_bbb.git", runtime: false, nerves: [compile: true], targets: :bbb},
-      {:nerves_system_stingray_bbb, path: @stingray_system_path, runtime: false, targets: :bbb},
+      stingray_nerves_system(),
     ]
+  end
+
+  defp stingray_nerves_system do
+    path = System.get_env("STINGRAY_SYSTEM_PATH", "")
+
+    case File.exists?(path) do
+      true -> {
+        :nerves_system_stingray_bbb,
+        path: path,
+        runtime: false,
+        targets: :bbb
+      }
+
+      _ -> {
+        :nerves_system_stingray_bbb,
+        ref: "v1.0.0",
+        git: "git@github.com:amclain/nerves_system_stringray_bbb.git",
+        runtime: false,
+        targets: :bbb
+      }
+    end
   end
 
   defp docs do
