@@ -33,7 +33,14 @@ defmodule Stingray.Application do
         {Stingray.PowerManager, nil},
       ] ++ children(target())
 
-    Supervisor.start_link(children, opts)
+    case Supervisor.start_link(children, opts) do
+      {:ok, pid} ->
+        after_start()
+        {:ok, pid}
+
+      error ->
+        error
+    end
   end
 
   # List all child processes to be supervised
@@ -57,7 +64,17 @@ defmodule Stingray.Application do
     Application.get_env(:stingray, :target)
   end
 
+  defp after_start do
+    if target() != :host do
+      export_target_file_shares()
+    end
+  end
+
   defp disable_bbb_heartbeat_led do
     File.write("/sys/class/leds/beaglebone:green:usr0/trigger", "none")
+  end
+
+  defp export_target_file_shares do
+    Enum.each(Stingray.Target.list, &Stingray.Target.export_file_share/1)
   end
 end

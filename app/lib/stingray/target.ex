@@ -3,6 +3,8 @@ defmodule Stingray.Target do
   A hardware target connected to the Stingray controller.
   """
 
+  alias Stingray.NFS
+
   defstruct [
     :id,
     :name,
@@ -20,6 +22,10 @@ defmodule Stingray.Target do
     baud:                 pos_integer,
     uboot_console_string: String.t,
   }
+
+  @file_share_dir \
+    Application.compile_env!(:stingray, :data_directory)
+    |> Path.join("share")
 
   @doc """
   Add a target to be managed by Stingray.
@@ -97,8 +103,22 @@ defmodule Stingray.Target do
         targets = add_sorted_target(targets, target)
         CubDB.put(:settings, :targets, targets)
 
+        if nfs_enabled?(),
+          do: :ok = export_file_share(target)
+
         {:ok, target}
     end
+  end
+
+  @doc """
+  Export the file sharing directory for a target.
+  """
+  @spec export_file_share(target :: t) :: :ok | {:error, code :: non_neg_integer}
+  def export_file_share(target) do
+    path = share_path(target)
+    
+    File.mkdir_p(path)
+    NFS.export(path)
   end
 
   @doc """
@@ -135,6 +155,11 @@ defmodule Stingray.Target do
           {{:error, :not_found}, targets}
 
         target ->
+          if nfs_enabled?() do
+            unexport_file_share(target)
+            File.rm_rf(share_path(target))
+          end
+
           new_targets = List.delete(targets, target)
           {{:ok, target}, new_targets}
       end        
@@ -171,13 +196,38 @@ defmodule Stingray.Target do
             |> List.delete(existing_target)
             |> add_sorted_target(new_target)
 
+          if nfs_enabled?() do
+            unexport_file_share(existing_target)
+            File.rename(share_path(existing_target), share_path(new_target))
+            :ok = export_file_share(new_target)
+          end
+
           {{:ok, new_target}, new_targets}
       end
     end)
   end
 
+  @doc """
+  Unexport the file sharing directory for a target.
+  """
+  @spec unexport_file_share(target :: t) :: :ok | {:error, code :: non_neg_integer}
+  def unexport_file_share(target) do
+    target
+    |> share_path()
+    |> NFS.unexport
+  end
+
+  defp nfs_enabled? do
+    !!Application.get_env(:stingray, :enable_nfs, false)
+  end
+
   defp add_sorted_target(targets, new_target) do
     [new_target | targets]
     |> Enum.sort(& &1.number < &2.number)
+  end
+
+  defp share_path(target) do
+    name = target.id |> to_string() |> String.replace("_", "-")
+    Path.join(@file_share_dir, name)
   end
 end

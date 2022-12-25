@@ -1,6 +1,8 @@
 import Config
 
-config :stingray, data_directory: "/data"
+config :stingray,
+  data_directory: "/data",
+  enable_nfs: true
 
 # Use Ringlogger as the logger backend and remove :console.
 # See https://hexdocs.pm/ring_logger/readme.html for more information on
@@ -59,7 +61,7 @@ keys =
         end
       end)
   end
-  
+
 if keys == [],
   do:
     Mix.raise("""

@@ -3,7 +3,7 @@ defmodule Stingray.NFS.Test do
 
   alias Stingray.NFS
 
-  let :path, do: "/data/nfs/target-01"
+  let :path, do: "/root/nfs/target-01"
   
   it "starts the NFS services" do
     allow File     |> to(accept :mkdir_p, fn _ -> :ok end)
@@ -131,6 +131,21 @@ defmodule Stingray.NFS.Test do
       end)
 
       expect NFS.unexport(path()) |> to(eq :ok)
+
+      expect MuonTrap |> to(accepted :cmd, :any, count: 1)
+    end
+
+    it "converts /data to /root" do
+      target_path   = "/data/share/target-01"
+      unexport_path = "/root/share/target-01"
+
+      allow MuonTrap |> to(accept :cmd, fn "exportfs", args ->
+        expect args |> to(have "-u")
+        expect args |> to(have "*:" <> unexport_path)
+        {"", 0}
+      end)
+
+      expect NFS.unexport(target_path) |> to(eq :ok)
 
       expect MuonTrap |> to(accepted :cmd, :any, count: 1)
     end

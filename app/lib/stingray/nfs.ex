@@ -138,6 +138,10 @@ defmodule Stingray.NFS do
   end
 
   def unexport(path) do
+    # Replace `/data` with `/root` since it's symlinked on Nerves but NFS
+    # doesn't understand the symlink when unexporting.
+    path = String.replace(path, ~r|^/data/(.*)|, "/root/\\1")
+
     case MuonTrap.cmd("exportfs", ["-u", "*:#{path}"]) do
       {_stdout, 0}    -> :ok
       {_stdout, code} -> {:error, code}
