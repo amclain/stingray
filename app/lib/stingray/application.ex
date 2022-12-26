@@ -5,6 +5,10 @@ defmodule Stingray.Application do
 
   use Application
 
+  alias Stingray.Target
+
+  @data_directory Application.compile_env(:stingray, :data_directory)
+
   @impl true
   def start(_type, _args) do
     if target() != :host do
@@ -12,13 +16,9 @@ defmodule Stingray.Application do
       Stingray.NFS.start
     end
 
-    data_directory =
-      Application.fetch_env!(:stingray, :data_directory)
-      |> Path.expand
+    File.mkdir_p(@data_directory)
 
-    File.mkdir_p(data_directory)
-
-    database_directory = Path.join(data_directory, "settings")
+    database_directory = Path.join(@data_directory, "settings")
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -68,6 +68,8 @@ defmodule Stingray.Application do
     if target() != :host do
       export_target_file_shares()
     end
+
+    ensure_upload_directories_exist()
   end
 
   defp disable_bbb_heartbeat_led do
@@ -75,6 +77,19 @@ defmodule Stingray.Application do
   end
 
   defp export_target_file_shares do
-    Enum.each(Stingray.Target.list, &Stingray.Target.export_file_share/1)
+    Enum.each(Target.list, &Target.export_file_share/1)
+  end
+
+  defp ensure_upload_directories_exist do
+    Enum.each(Target.list, fn target ->
+      target_name =
+        target.id
+        |> to_string()
+        |> String.replace("_", "-")
+
+      [@data_directory, "uploads", target_name]
+      |> Path.join()
+      |> File.mkdir_p()
+    end)
   end
 end
