@@ -9,12 +9,14 @@ defmodule Stingray.Application do
 
   @data_directory Application.compile_env(:stingray, :data_directory)
 
-  @impl true
+  @impl Application
   def start(_type, _args) do
     if target() != :host do
       disable_bbb_heartbeat_led()
-      Stingray.NFS.start
     end
+
+    if Application.get_env(:stingray, :enable_nfs, false),
+      do: Stingray.NFS.start
 
     File.mkdir_p(@data_directory)
 
@@ -58,6 +60,12 @@ defmodule Stingray.Application do
       # Starts a worker by calling: Stingray.Worker.start_link(arg)
       # {Stingray.Worker, arg},
     ]
+  end
+
+  @impl Application
+  def stop(_state) do
+    if Application.get_env(:stingray, :enable_nfs, false),
+      do: Stingray.NFS.stop
   end
 
   def target() do
