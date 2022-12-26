@@ -65,6 +65,7 @@ defmodule Stingray.MixProject do
       {:espec, "~> 1.9", only: :test},
       {:excoveralls, "~> 0.15", only: :test},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
+      {:file_system, "~> 0.2.10"},
       {:jason, "~> 1.4"},
       {:nerves, "~> 1.9", runtime: false},
       {:shoehorn, "~> 0.9"},

@@ -33,6 +33,7 @@ defmodule Stingray.Application do
         # {Stingray.Worker, arg},
         {CubDB, [name: :settings, data_dir: database_directory]},
         {Stingray.PowerManager, nil},
+        {Stingray.UploadManager, nil},
       ] ++ children(target())
 
     case Supervisor.start_link(children, opts) do

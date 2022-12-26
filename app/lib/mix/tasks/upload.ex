@@ -49,30 +49,8 @@ defmodule Mix.Tasks.Stingray.Upload do
       "echo 'put #{firmware_path}' | sftp #{stingray_ip}:#{target_path}",
       stderr_to_stdout: true
     ) do
-      0 ->
-        temp_dir       = Path.join(System.tmp_dir!, "stingray/tasks")
-        done_file_name = Path.basename(firmware_path) <> ".done"
-        done_path      = Path.join(temp_dir, done_file_name)
-
-        File.mkdir_p(temp_dir)
-        File.write(done_path, "")
-
-        case Mix.Shell.Quiet.cmd(
-          "echo 'put #{done_path}' | sftp #{stingray_ip}:#{target_path}",
-          stderr_to_stdout: true
-        ) do
-          0 -> IO.puts "Done"
-          _ -> Mix.raise "File transfer failed"
-        end
-
-        File.rm(done_path)
-
-        if File.ls!(temp_dir) == [],
-          do: File.rm_rf(temp_dir)
-
-      _ ->
-        Mix.raise "File transfer failed"
+      0 -> IO.puts "Done"
+      _ -> Mix.raise "File transfer failed"
     end
-
   end
 end
