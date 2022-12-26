@@ -23,9 +23,7 @@ defmodule Stingray.Target do
     uboot_console_string: String.t,
   }
 
-  @file_share_dir \
-    Application.compile_env!(:stingray, :data_directory)
-    |> Path.join("share")
+  @data_directory Application.compile_env!(:stingray, :data_directory)
 
   @doc """
   Add a target to be managed by Stingray.
@@ -106,8 +104,22 @@ defmodule Stingray.Target do
         if nfs_enabled?(),
           do: :ok = export_file_share(target)
 
+        ensure_upload_directory_exists(target)
+
         {:ok, target}
     end
+  end
+
+  @doc """
+  Ensure the upload directory exists for a target.
+
+  This function is idempotent.
+  """
+  @spec ensure_upload_directory_exists(target :: t) :: :ok | {:error | :file.posix}
+  def ensure_upload_directory_exists(target) do
+    target
+    |> uploads_path()
+    |> File.mkdir_p
   end
 
   @doc """
@@ -120,6 +132,19 @@ defmodule Stingray.Target do
     File.mkdir_p(path)
     NFS.export(path)
   end
+
+  @doc """
+  Get the name of a target as it should appear on the file system.
+  """
+  @spec file_system_name(target :: t | atom | String.t) :: String.t
+  def file_system_name(target = %__MODULE__{}),
+    do: file_system_name(target.id)
+
+  def file_system_name(target_id) when is_atom(target_id),
+    do: target_id |> to_string() |> file_system_name()
+
+  def file_system_name(target_id) when is_binary(target_id),
+    do: String.replace(target_id, "_", "-")
 
   @doc """
   Get a target by id.
@@ -159,6 +184,8 @@ defmodule Stingray.Target do
             unexport_file_share(target)
             File.rm_rf(share_path(target))
           end
+
+          remove_upload_directory(target)
 
           new_targets = List.delete(targets, target)
           {{:ok, target}, new_targets}
@@ -202,6 +229,8 @@ defmodule Stingray.Target do
             :ok = export_file_share(new_target)
           end
 
+          File.rename(uploads_path(existing_target), uploads_path(new_target))
+
           {{:ok, new_target}, new_targets}
       end
     end)
@@ -226,8 +255,17 @@ defmodule Stingray.Target do
     |> Enum.sort(& &1.number < &2.number)
   end
 
+  defp remove_upload_directory(target) do
+    target
+    |> uploads_path()
+    |> File.rm_rf
+  end
+
   defp share_path(target) do
-    name = target.id |> to_string() |> String.replace("_", "-")
-    Path.join(@file_share_dir, name)
+    Path.join([@data_directory, "share", file_system_name(target)])
+  end
+
+  defp uploads_path(target) do
+    Path.join([@data_directory, "uploads", file_system_name(target)])
   end
 end

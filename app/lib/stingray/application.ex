@@ -69,7 +69,7 @@ defmodule Stingray.Application do
       export_target_file_shares()
     end
 
-    ensure_upload_directories_exist()
+    ensure_target_upload_directories_exist()
   end
 
   defp disable_bbb_heartbeat_led do
@@ -80,16 +80,7 @@ defmodule Stingray.Application do
     Enum.each(Target.list, &Target.export_file_share/1)
   end
 
-  defp ensure_upload_directories_exist do
-    Enum.each(Target.list, fn target ->
-      target_name =
-        target.id
-        |> to_string()
-        |> String.replace("_", "-")
-
-      [@data_directory, "uploads", target_name]
-      |> Path.join()
-      |> File.mkdir_p()
-    end)
+  defp ensure_target_upload_directories_exist do
+    Enum.each(Target.list, &Target.ensure_upload_directory_exists/1)
   end
 end

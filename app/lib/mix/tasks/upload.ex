@@ -39,7 +39,7 @@ defmodule Mix.Tasks.Stingray.Upload do
     target_name =
       target_id
       |> String.replace(~r/^:?(.*)/, "\\1")
-      |> String.replace("_", "-")
+      |> Stingray.Target.file_system_name
 
     target_path = Path.join("/data/uploads", target_name)
 

@@ -4,11 +4,12 @@ defmodule Stringray.Target.Test do
   alias Stingray.NFS
   alias Stingray.Target
 
-  let :target_number,      do: 1
-  let :target_id,          do: :my_target
-  let :target_name,        do: "My Target"
-  let :target_serial_port, do: "ttyUSB0"
-  let :target_baud,        do: 115200
+  let :target_number,           do: 1
+  let :target_id,               do: :my_target
+  let :target_name,             do: "My Target"
+  let :target_serial_port,      do: "ttyUSB0"
+  let :target_baud,             do: 115200
+  let :target_file_system_name, do: "my-target"
 
   before_all do
     Application.put_env(:stingray, :enable_nfs, true)
@@ -36,20 +37,30 @@ defmodule Stringray.Target.Test do
 
   describe "add a target" do
     specify do
-      expect Target.add(2, :my_new_target, "My New Target", "ttyUSB0", 115200)|> to(eq \
-        {:ok, %Target{
-          number:               2,
-          id:                   :my_new_target,
-          name:                 "My New Target",
-          serial_port:          "ttyUSB0",
-          baud:                 115200,
-          uboot_console_string: nil,
-        }
-      })
+      new_target = %Target{
+        number:               2,
+        id:                   :my_new_target,
+        name:                 "My New Target",
+        serial_port:          "ttyUSB0",
+        baud:                 115200,
+        uboot_console_string: nil,
+      }
+
+      share_path  = target_share_path(new_target)
+      upload_path = target_upload_path(new_target)
+
+      allow File |> to(accept :mkdir_p, fn
+        ^share_path     -> :ok
+        ^upload_path    -> :ok
+        unexpected_path -> raise "Unexpectedly tried to create #{unexpected_path}"
+      end)
+
+      expect Target.add(2, :my_new_target, "My New Target", "ttyUSB0", 115200)
+      |> to(eq {:ok, new_target})
 
       # One of these counts is for the default target that's set up before this
       # test runs.
-      expect File |> to(accepted :mkdir_p, :any, count: 2)
+      expect File |> to(accepted :mkdir_p, :any, count: 4)
       expect NFS  |> to(accepted :export,  :any, count: 2)
     end
 
@@ -143,10 +154,19 @@ defmodule Stringray.Target.Test do
 
   describe "remove a target" do
     specify do
+      share_path  = target_share_path(shared.target)
+      upload_path = target_upload_path(shared.target)
+
+      allow File |> to(accept :rm_rf, fn
+        ^share_path     -> :ok
+        ^upload_path    -> :ok
+        unexpected_path -> raise "Unexpectedly tried to remove #{unexpected_path}"
+      end)
+
       expect Target.remove(target_id()) |> should(eq {:ok, shared.target})
       expect Target.list |> should(eq [])
 
-      expect File |> to(accepted :rm_rf,    :any, count: 1)
+      expect File |> to(accepted :rm_rf,    :any, count: 2)
       expect NFS  |> to(accepted :unexport, :any, count: 1)
     end
 
@@ -177,11 +197,29 @@ defmodule Stringray.Target.Test do
         :ok
       end)
 
-      allow File |> to(accept :rename, fn old_path, new_path ->
-        expect old_path |> to(eq target_share_path(shared.target))
-        expect new_path |> to(eq target_share_path(changed_target))
+      share_path  = target_share_path(changed_target)
+      upload_path = target_upload_path(changed_target)
 
-        :ok
+      allow File |> to(accept :mkdir_p, fn
+        ^share_path     -> :ok
+        ^upload_path    -> :ok
+        unexpected_path -> raise "Unexpectedly tried to create #{unexpected_path}"
+      end)
+
+      old_share_path  = target_share_path(shared.target)
+      old_upload_path = target_upload_path(shared.target)
+
+      allow File |> to(accept :rename, fn
+        ^old_share_path, new_path ->
+          expect new_path |> to(eq target_share_path(changed_target))
+          :ok
+
+        ^old_upload_path, new_path ->
+          expect new_path |> to(eq target_upload_path(changed_target))
+          :ok
+
+        unexpected_path, new_path ->
+          raise "Unexpectedly tried to rename #{unexpected_path} to #{new_path}"
       end)
 
       expect Target.set(
@@ -198,7 +236,8 @@ defmodule Stringray.Target.Test do
 
       expect NFS  |> to(accepted :unexport, :any, count: 1)
       expect NFS  |> to(accepted :export,   :any, count: 2)
-      expect File |> to(accepted :rename,   :any, count: 1)
+      expect File |> to(accepted :mkdir_p,  :any, count: 3)
+      expect File |> to(accepted :rename,   :any, count: 2)
     end
 
     specify "by target handle" do
@@ -251,7 +290,7 @@ defmodule Stringray.Target.Test do
 
       expect Target.export_file_share(shared.target) |> to(eq :ok)
 
-      expect File |> to(accepted :mkdir_p, :any, count: 2)
+      expect File |> to(accepted :mkdir_p, :any, count: 3)
       expect NFS  |> to(accepted :export,  :any, count: 2)
     end
 
@@ -267,13 +306,54 @@ defmodule Stringray.Target.Test do
     end
   end
 
-  defp target_share_path(target) do
-    target_folder_name = target.id |> to_string() |> String.replace("_", "-")
+  describe "file system name" do
+    specify "of a target" do
+      expect Target.file_system_name(shared.target)
+      |> to(eq target_file_system_name())
+    end
 
+    specify "of a target's ID as an atom" do
+      expect Target.file_system_name(target_id())
+      |> to(eq target_file_system_name())
+    end
+
+    specify "of a target's ID as a string" do
+      expect Target.file_system_name(to_string(target_id()))
+      |> to(eq target_file_system_name())
+    end
+  end
+
+  specify "ensure upload directory exists" do
+    expected_path = Path.join([
+      Application.get_env(:stingray, :data_directory),
+      "uploads",
+      target_file_system_name(),
+    ])
+
+    allow File |> to(accept :mkdir_p, fn path ->
+      expect path |> to(eq expected_path)
+      :ok
+    end)
+
+    expect Target.ensure_upload_directory_exists(shared.target)
+    |> to(eq :ok)
+
+    expect File |> to(accepted :mkdir_p, :any, count: 3)
+  end
+
+  defp target_share_path(target) do
     Path.join([
       Application.get_env(:stingray, :data_directory),
       "share",
-      target_folder_name,
+      Target.file_system_name(target),
+    ])
+  end
+
+  defp target_upload_path(target) do
+    Path.join([
+      Application.get_env(:stingray, :data_directory),
+      "uploads",
+      Target.file_system_name(target),
     ])
   end
 end
