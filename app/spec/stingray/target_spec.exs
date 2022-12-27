@@ -341,6 +341,55 @@ defmodule Stringray.Target.Test do
     expect File |> to(accepted :mkdir_p, :any, count: 3)
   end
 
+  describe "generate uboot params" do
+    before do
+      DI.inject(PropertyTable, quote do
+        def get(VintageNet, ["interface", "eth0", "addresses"]) do
+          [
+            %{
+              address: {192, 168, 1, 2},
+              family: :inet,
+              netmask: {255, 255, 255, 0},
+              prefix_length: 24,
+              scope: :universe
+            },
+            %{
+              address: {65152, 0, 0, 0, 43536, 34815, 65203, 16818},
+              family: :inet6,
+              netmask: {65535, 65535, 65535, 65535, 0, 0, 0, 0},
+              prefix_length: 64,
+              scope: :link
+            }
+          ]
+        end
+
+        def get(_, _), do: raise "Unexpected call to PropertyTable.get"
+      end)
+
+      :ok
+    end
+
+    specify "for a target" do
+      params_string = Target.uboot_env_vars(shared.target)
+
+      expect params_string |> to(have "setenv ipaddr ")
+      expect params_string |> to(have "setenv stingray.ip 192.168.1.2")
+      expect params_string |> to(have "setenv stingray.target #{target_file_system_name()}")
+      expect params_string |> to(have "setenv loadzimage ")
+    end
+
+    specify "for a target ID as an atom" do
+      expect Target.uboot_env_vars(target_id())
+      |> to(have "setenv stingray.target #{target_file_system_name()}")
+    end
+
+    it "can print to stdout" do
+      stdout = capture_io(fn -> Target.uboot_env_vars(shared.target, print: true) end)
+
+      expect stdout |> to(have "setenv stingray.target #{target_file_system_name()}")
+    end
+  end
+
   defp target_share_path(target) do
     Path.join([
       Application.get_env(:stingray, :data_directory),

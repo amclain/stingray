@@ -3,6 +3,8 @@ defmodule Stingray.Target do
   A hardware target connected to the Stingray controller.
   """
 
+  use DI
+
   alias Stingray.NFS
 
   defstruct [
@@ -234,6 +236,45 @@ defmodule Stingray.Target do
           {{:ok, new_target}, new_targets}
       end
     end)
+  end
+
+  @doc """
+  U-Boot environment variables to configure to be able to work with Stingray.
+
+  ## Opts
+  - `print` - Print to stdout rather than returning a string.
+  """
+  @spec uboot_env_vars(target :: t | atom, opts :: [print: boolean]) :: String.t
+  def uboot_env_vars(target, opts \\ [])
+
+  def uboot_env_vars(target_id, opts) when is_atom(target_id),
+    do: uboot_env_vars(get(target_id), opts)
+
+  def uboot_env_vars(target = %__MODULE__{}, opts) do
+    print = !!opts[:print]
+
+    target_file_system_name = file_system_name(target)
+
+    stingray_ip =
+      di(PropertyTable).get(VintageNet, ["interface", "eth0", "addresses"])
+      |> Enum.filter(& &1.family == :inet)
+      |> List.first
+      |> Map.get(:address)
+      |> Tuple.to_list
+      |> Enum.join(".")
+
+    params =
+      """
+      setenv ipaddr <target_ip>
+      setenv stingray.ip #{stingray_ip}
+      setenv stingray.target #{target_file_system_name}
+      setenv loadzimage 'nfs ${loadaddr} ${stingray.ip}:/data/share/${stingray.target}/rootfs${bootfile}'
+      """
+
+    case print do
+      true -> IO.puts params
+      _    -> params
+    end
   end
 
   @doc """
