@@ -3,6 +3,10 @@ defmodule Stingray.Target do
   A hardware target connected to the Stingray controller.
   """
 
+  use DI
+
+  alias Stingray.NFS
+
   defstruct [
     :id,
     :name,
@@ -20,6 +24,8 @@ defmodule Stingray.Target do
     baud:                 pos_integer,
     uboot_console_string: String.t,
   }
+
+  @data_directory Application.compile_env!(:stingray, :data_directory)
 
   @doc """
   Add a target to be managed by Stingray.
@@ -97,9 +103,50 @@ defmodule Stingray.Target do
         targets = add_sorted_target(targets, target)
         CubDB.put(:settings, :targets, targets)
 
+        if nfs_enabled?(),
+          do: :ok = export_file_share(target)
+
+        ensure_upload_directory_exists(target)
+
         {:ok, target}
     end
   end
+
+  @doc """
+  Ensure the upload directory exists for a target.
+
+  This function is idempotent.
+  """
+  @spec ensure_upload_directory_exists(target :: t) :: :ok | {:error | :file.posix}
+  def ensure_upload_directory_exists(target) do
+    target
+    |> uploads_path()
+    |> File.mkdir_p
+  end
+
+  @doc """
+  Export the file sharing directory for a target.
+  """
+  @spec export_file_share(target :: t) :: :ok | {:error, code :: non_neg_integer}
+  def export_file_share(target) do
+    path = share_path(target)
+    
+    File.mkdir_p(path)
+    NFS.export(path)
+  end
+
+  @doc """
+  Get the name of a target as it should appear on the file system.
+  """
+  @spec file_system_name(target :: t | atom | String.t) :: String.t
+  def file_system_name(target = %__MODULE__{}),
+    do: file_system_name(target.id)
+
+  def file_system_name(target_id) when is_atom(target_id),
+    do: target_id |> to_string() |> file_system_name()
+
+  def file_system_name(target_id) when is_binary(target_id),
+    do: String.replace(target_id, "_", "-")
 
   @doc """
   Get a target by id.
@@ -135,6 +182,13 @@ defmodule Stingray.Target do
           {{:error, :not_found}, targets}
 
         target ->
+          if nfs_enabled?() do
+            unexport_file_share(target)
+            File.rm_rf(share_path(target))
+          end
+
+          remove_upload_directory(target)
+
           new_targets = List.delete(targets, target)
           {{:ok, target}, new_targets}
       end        
@@ -171,13 +225,88 @@ defmodule Stingray.Target do
             |> List.delete(existing_target)
             |> add_sorted_target(new_target)
 
+          if nfs_enabled?() do
+            unexport_file_share(existing_target)
+            File.rename(share_path(existing_target), share_path(new_target))
+            :ok = export_file_share(new_target)
+          end
+
+          File.rename(uploads_path(existing_target), uploads_path(new_target))
+
           {{:ok, new_target}, new_targets}
       end
     end)
   end
 
+  @doc """
+  U-Boot environment variables to configure to be able to work with Stingray.
+
+  ## Opts
+  - `print` - Print to stdout rather than returning a string.
+  """
+  @spec uboot_env_vars(target :: t | atom, opts :: [print: boolean]) :: String.t
+  def uboot_env_vars(target, opts \\ [])
+
+  def uboot_env_vars(target_id, opts) when is_atom(target_id),
+    do: uboot_env_vars(get(target_id), opts)
+
+  def uboot_env_vars(target = %__MODULE__{}, opts) do
+    print = !!opts[:print]
+
+    target_file_system_name = file_system_name(target)
+
+    stingray_ip =
+      di(PropertyTable).get(VintageNet, ["interface", "eth0", "addresses"])
+      |> Enum.filter(& &1.family == :inet)
+      |> List.first
+      |> Map.get(:address)
+      |> Tuple.to_list
+      |> Enum.join(".")
+
+    params =
+      """
+      setenv ipaddr <target_ip>
+      setenv stingray.ip #{stingray_ip}
+      setenv stingray.target #{target_file_system_name}
+      setenv loadzimage 'nfs ${loadaddr} ${stingray.ip}:/data/share/${stingray.target}/rootfs${bootfile}'
+      """
+
+    case print do
+      true -> IO.puts params
+      _    -> params
+    end
+  end
+
+  @doc """
+  Unexport the file sharing directory for a target.
+  """
+  @spec unexport_file_share(target :: t) :: :ok | {:error, code :: non_neg_integer}
+  def unexport_file_share(target) do
+    target
+    |> share_path()
+    |> NFS.unexport
+  end
+
+  defp nfs_enabled? do
+    !!Application.get_env(:stingray, :enable_nfs, false)
+  end
+
   defp add_sorted_target(targets, new_target) do
     [new_target | targets]
     |> Enum.sort(& &1.number < &2.number)
+  end
+
+  defp remove_upload_directory(target) do
+    target
+    |> uploads_path()
+    |> File.rm_rf
+  end
+
+  defp share_path(target) do
+    Path.join([@data_directory, "share", file_system_name(target)])
+  end
+
+  defp uploads_path(target) do
+    Path.join([@data_directory, "uploads", file_system_name(target)])
   end
 end

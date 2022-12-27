@@ -1,15 +1,29 @@
 defmodule Stringray.Target.Test do
   use ESpec
 
+  alias Stingray.NFS
   alias Stingray.Target
 
-  let :target_number,      do: 1
-  let :target_id,          do: :my_target
-  let :target_name,        do: "My Target"
-  let :target_serial_port, do: "ttyUSB0"
-  let :target_baud,        do: 115200
+  let :target_number,           do: 1
+  let :target_id,               do: :my_target
+  let :target_name,             do: "My Target"
+  let :target_serial_port,      do: "ttyUSB0"
+  let :target_baud,             do: 115200
+  let :target_file_system_name, do: "my-target"
+
+  before_all do
+    Application.put_env(:stingray, :enable_nfs, true)
+  end
+
+  after_all do
+    Application.put_env(:stingray, :enable_nfs, false)
+  end
 
   before do
+    allow File |> to(accept :mkdir_p,  fn _path -> :ok end)
+    allow NFS  |> to(accept :export,   fn _path -> :ok end)
+    allow NFS  |> to(accept :unexport, fn _path -> :ok end)
+
     {:ok, target} = Target.add(
       target_number(),
       target_id(),
@@ -23,16 +37,31 @@ defmodule Stringray.Target.Test do
 
   describe "add a target" do
     specify do
-      expect Target.add(2, :my_new_target, "My New Target", "ttyUSB0", 115200)|> to(eq \
-        {:ok, %Target{
-          number:               2,
-          id:                   :my_new_target,
-          name:                 "My New Target",
-          serial_port:          "ttyUSB0",
-          baud:                 115200,
-          uboot_console_string: nil,
-        }
-      })
+      new_target = %Target{
+        number:               2,
+        id:                   :my_new_target,
+        name:                 "My New Target",
+        serial_port:          "ttyUSB0",
+        baud:                 115200,
+        uboot_console_string: nil,
+      }
+
+      share_path  = target_share_path(new_target)
+      upload_path = target_upload_path(new_target)
+
+      allow File |> to(accept :mkdir_p, fn
+        ^share_path     -> :ok
+        ^upload_path    -> :ok
+        unexpected_path -> raise "Unexpectedly tried to create #{unexpected_path}"
+      end)
+
+      expect Target.add(2, :my_new_target, "My New Target", "ttyUSB0", 115200)
+      |> to(eq {:ok, new_target})
+
+      # One of these counts is for the default target that's set up before this
+      # test runs.
+      expect File |> to(accepted :mkdir_p, :any, count: 4)
+      expect NFS  |> to(accepted :export,  :any, count: 2)
     end
 
     specify "with a U-Boot console string" do
@@ -125,8 +154,20 @@ defmodule Stringray.Target.Test do
 
   describe "remove a target" do
     specify do
+      share_path  = target_share_path(shared.target)
+      upload_path = target_upload_path(shared.target)
+
+      allow File |> to(accept :rm_rf, fn
+        ^share_path     -> :ok
+        ^upload_path    -> :ok
+        unexpected_path -> raise "Unexpectedly tried to remove #{unexpected_path}"
+      end)
+
       expect Target.remove(target_id()) |> should(eq {:ok, shared.target})
       expect Target.list |> should(eq [])
+
+      expect File |> to(accepted :rm_rf,    :any, count: 2)
+      expect NFS  |> to(accepted :unexport, :any, count: 1)
     end
 
     it "returns an error if the target doesn't exist" do
@@ -146,6 +187,41 @@ defmodule Stringray.Target.Test do
         uboot_console_string: "st1ngr4y",
       }
 
+      allow NFS |> to(accept :unexport, fn path ->
+        expect path |> to(eq target_share_path(shared.target))
+        :ok
+      end)
+
+      allow NFS |> to(accept :export, fn path ->
+        expect path |> to(eq target_share_path(changed_target))
+        :ok
+      end)
+
+      share_path  = target_share_path(changed_target)
+      upload_path = target_upload_path(changed_target)
+
+      allow File |> to(accept :mkdir_p, fn
+        ^share_path     -> :ok
+        ^upload_path    -> :ok
+        unexpected_path -> raise "Unexpectedly tried to create #{unexpected_path}"
+      end)
+
+      old_share_path  = target_share_path(shared.target)
+      old_upload_path = target_upload_path(shared.target)
+
+      allow File |> to(accept :rename, fn
+        ^old_share_path, new_path ->
+          expect new_path |> to(eq target_share_path(changed_target))
+          :ok
+
+        ^old_upload_path, new_path ->
+          expect new_path |> to(eq target_upload_path(changed_target))
+          :ok
+
+        unexpected_path, new_path ->
+          raise "Unexpectedly tried to rename #{unexpected_path} to #{new_path}"
+      end)
+
       expect Target.set(
         target_id(),
         id:                   :changed_target,
@@ -157,6 +233,11 @@ defmodule Stringray.Target.Test do
       |> to(eq {:ok, changed_target})
 
       expect Target.list() |> to(eq [changed_target])
+
+      expect NFS  |> to(accepted :unexport, :any, count: 1)
+      expect NFS  |> to(accepted :export,   :any, count: 2)
+      expect File |> to(accepted :mkdir_p,  :any, count: 3)
+      expect File |> to(accepted :rename,   :any, count: 2)
     end
 
     specify "by target handle" do
@@ -196,5 +277,132 @@ defmodule Stringray.Target.Test do
       expect Target.set(shared.target, invalid: "Can't set this")
       |> to(eq {:ok, shared.target})
     end
+  end
+
+  describe "file share" do
+    it "can be exported for a target" do
+      allow File |> to(accept :mkdir_p, fn _ -> :ok end)
+      
+      allow NFS |> to(accept :export, fn path ->
+        expect path |> to(eq target_share_path(shared.target))
+        :ok
+      end)
+
+      expect Target.export_file_share(shared.target) |> to(eq :ok)
+
+      expect File |> to(accepted :mkdir_p, :any, count: 3)
+      expect NFS  |> to(accepted :export,  :any, count: 2)
+    end
+
+    it "can be unexported for a target" do
+      allow NFS |> to(accept :unexport, fn path ->
+        expect path |> to(eq target_share_path(shared.target))
+        :ok
+      end)
+
+      expect Target.unexport_file_share(shared.target) |> to(eq :ok)
+
+      expect NFS |> to(accepted :unexport, :any, count: 1)
+    end
+  end
+
+  describe "file system name" do
+    specify "of a target" do
+      expect Target.file_system_name(shared.target)
+      |> to(eq target_file_system_name())
+    end
+
+    specify "of a target's ID as an atom" do
+      expect Target.file_system_name(target_id())
+      |> to(eq target_file_system_name())
+    end
+
+    specify "of a target's ID as a string" do
+      expect Target.file_system_name(to_string(target_id()))
+      |> to(eq target_file_system_name())
+    end
+  end
+
+  specify "ensure upload directory exists" do
+    expected_path = Path.join([
+      Application.get_env(:stingray, :data_directory),
+      "uploads",
+      target_file_system_name(),
+    ])
+
+    allow File |> to(accept :mkdir_p, fn path ->
+      expect path |> to(eq expected_path)
+      :ok
+    end)
+
+    expect Target.ensure_upload_directory_exists(shared.target)
+    |> to(eq :ok)
+
+    expect File |> to(accepted :mkdir_p, :any, count: 3)
+  end
+
+  describe "generate uboot params" do
+    before do
+      DI.inject(PropertyTable, quote do
+        def get(VintageNet, ["interface", "eth0", "addresses"]) do
+          [
+            %{
+              address: {192, 168, 1, 2},
+              family: :inet,
+              netmask: {255, 255, 255, 0},
+              prefix_length: 24,
+              scope: :universe
+            },
+            %{
+              address: {65152, 0, 0, 0, 43536, 34815, 65203, 16818},
+              family: :inet6,
+              netmask: {65535, 65535, 65535, 65535, 0, 0, 0, 0},
+              prefix_length: 64,
+              scope: :link
+            }
+          ]
+        end
+
+        def get(_, _), do: raise "Unexpected call to PropertyTable.get"
+      end)
+
+      :ok
+    end
+
+    specify "for a target" do
+      params_string = Target.uboot_env_vars(shared.target)
+
+      expect params_string |> to(have "setenv ipaddr ")
+      expect params_string |> to(have "setenv stingray.ip 192.168.1.2")
+      expect params_string |> to(have "setenv stingray.target #{target_file_system_name()}")
+      expect params_string |> to(have "setenv loadzimage ")
+    end
+
+    specify "for a target ID as an atom" do
+      expect Target.uboot_env_vars(target_id())
+      |> to(have "setenv stingray.target #{target_file_system_name()}")
+    end
+
+    it "can print to stdout" do
+      stdout = capture_io(fn -> Target.uboot_env_vars(shared.target, print: true) end)
+
+      expect stdout |> to(have "setenv stingray.target #{target_file_system_name()}")
+    end
+  end
+
+  defp target_share_path(target) do
+    Path.join([
+      Application.get_env(:stingray, :data_directory),
+      "share",
+      Target.file_system_name(target),
+    ])
+  end
+
+  defp target_upload_path(target) do
+    Path.join([
+      Application.get_env(:stingray, :data_directory),
+      "uploads",
+      Target.file_system_name(target),
+    ])
   end
 end
