@@ -95,7 +95,7 @@ defmodule Stingray.MixProject do
 
       _ -> {
         :nerves_system_stingray_bbb,
-        ref: "v1.0.0",
+        ref: "v1.0.2",
         git: "git@github.com:amclain/nerves_system_stringray_bbb.git",
         runtime: false,
         targets: :bbb
