@@ -6,12 +6,11 @@ config :stingray,
   data_directory: "./data",
   enable_nfs: false
 
-config :stingray, di: %{
+config :resolve,
   compile: false,
   mappings: [
     {Stingray.PowerManager, Stingray.PowerManager.Virtual},
   ]
-}
 
 config :stingray, io: %{
   relay_pin: -1,

@@ -30,7 +30,7 @@ defmodule Stingray.PowerManager do
   """
   @callback off() :: :ok
 
-  use DI
+  use Resolve
 
   defmacro __using__(_) do
     quote do
@@ -41,13 +41,13 @@ defmodule Stingray.PowerManager do
   @doc false
   def child_spec(opts), do: %{id: __MODULE__, start: {__MODULE__, :start_link, [opts]}}
 
-  def start_link(opts), do: di(__MODULE__).start_link(opts)
+  def start_link(opts), do: resolve(__MODULE__).start_link(opts)
 
-  def cycle(cycle_time_in_ms \\ 2000), do: di(__MODULE__).cycle(cycle_time_in_ms)
+  def cycle(cycle_time_in_ms \\ 2000), do: resolve(__MODULE__).cycle(cycle_time_in_ms)
 
-  def power?, do: di(__MODULE__).power?
+  def power?, do: resolve(__MODULE__).power?
 
-  def on, do: di(__MODULE__).on
+  def on, do: resolve(__MODULE__).on
 
-  def off, do: di(__MODULE__).off
+  def off, do: resolve(__MODULE__).off
 end

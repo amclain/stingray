@@ -3,7 +3,7 @@ defmodule Stingray.Target do
   A hardware target connected to the Stingray controller.
   """
 
-  use DI
+  use Resolve
 
   alias Stingray.NFS
 
@@ -256,7 +256,7 @@ defmodule Stingray.Target do
     target_file_system_name = file_system_name(target)
 
     stingray_ip =
-      di(PropertyTable).get(VintageNet, ["interface", "eth0", "addresses"])
+      resolve(PropertyTable).get(VintageNet, ["interface", "eth0", "addresses"])
       |> Enum.filter(& &1.family == :inet)
       |> List.first
       |> Map.get(:address)

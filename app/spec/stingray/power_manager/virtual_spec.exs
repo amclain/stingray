@@ -4,7 +4,7 @@ defmodule Stingray.PowerManager.Vritual.Test do
   alias Stingray.PowerManager
 
   before do
-    DI.inject(Stingray.PowerManager, Stingray.PowerManager.Virtual)
+    Resolve.inject(Stingray.PowerManager, Stingray.PowerManager.Virtual)
   end
 
   it "target power always appears on" do
