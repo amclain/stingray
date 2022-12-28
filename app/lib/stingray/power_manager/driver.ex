@@ -55,7 +55,7 @@ defmodule Stingray.PowerManager.Driver do
   @impl GenServer
   def handle_continue(:init, _state) do
     {:ok, gpio_pin} =
-      resolve(Circuits.GPIO).open(@relay_pin, :output, initial_value: 1)
+      resolve(Circuits.GPIO).open(@relay_pin, :output, initial_value: 0)
 
     state = %State{
       cycle_timer: nil,
@@ -71,7 +71,7 @@ defmodule Stingray.PowerManager.Driver do
     do: handle_call(:on, from, state)
 
   def handle_call({:cycle, cycle_time_in_ms}, _from, state) do
-    :ok = resolve(Circuits.GPIO).write(state.gpio_pin, 1)
+    :ok = resolve(Circuits.GPIO).write(state.gpio_pin, 0)
 
     cycle_timer = Process.send_after(self(), :cycle_timer, cycle_time_in_ms)
     state       = %State{state | is_on: false, cycle_timer: cycle_timer}
@@ -89,7 +89,7 @@ defmodule Stingray.PowerManager.Driver do
     if state.cycle_timer,
       do: Process.cancel_timer(state.cycle_timer)
 
-    :ok = resolve(Circuits.GPIO).write(state.gpio_pin, 0)
+    :ok = resolve(Circuits.GPIO).write(state.gpio_pin, 1)
 
     {:reply, :ok, %State{state | is_on: true, cycle_timer: nil}}
   end
@@ -99,14 +99,14 @@ defmodule Stingray.PowerManager.Driver do
     if state.cycle_timer,
       do: Process.cancel_timer(state.cycle_timer)
 
-    :ok = resolve(Circuits.GPIO).write(state.gpio_pin, 1)
+    :ok = resolve(Circuits.GPIO).write(state.gpio_pin, 0)
 
     {:reply, :ok, %State{state | is_on: false, cycle_timer: nil}}
   end
 
   @impl GenServer
   def handle_info(:cycle_timer, state) do
-    :ok   = resolve(Circuits.GPIO).write(state.gpio_pin, 0)
+    :ok   = resolve(Circuits.GPIO).write(state.gpio_pin, 1)
     state = %State{state | is_on: true, cycle_timer: nil}
 
     {:noreply, state}
