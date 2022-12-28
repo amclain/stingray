@@ -343,7 +343,7 @@ defmodule Stringray.Target.Test do
 
   describe "generate uboot params" do
     before do
-      DI.inject(PropertyTable, quote do
+      Resolve.inject(PropertyTable, quote do
         def get(VintageNet, ["interface", "eth0", "addresses"]) do
           [
             %{

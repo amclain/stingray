@@ -5,7 +5,7 @@ defmodule Stingray.Console.Server.Test do
   alias Stingray.Console.Server
 
   it "can open a console server" do
-    DI.inject(Port, quote do
+    Resolve.inject(Port, quote do
       def open(_name, _opts), do: self()
 
       def close(_port), do: :ok
@@ -13,7 +13,7 @@ defmodule Stingray.Console.Server.Test do
       def command(_port, _data), do: :ok
     end)
 
-    DI.inject(IO, quote do
+    Resolve.inject(IO, quote do
       def gets(_), do: "#exit\n"
     end)
 

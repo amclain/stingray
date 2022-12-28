@@ -4,7 +4,7 @@ defmodule Stingray.Console.Server do
   """
 
   use GenServer
-  use DI
+  use Resolve
 
   alias Stingray.PowerManager
 
@@ -85,7 +85,7 @@ defmodule Stingray.Console.Server do
 
   @impl GenServer
   def handle_continue(:init, state) do
-    port = di(Port).open(
+    port = resolve(Port).open(
       {:spawn, "picocom -b #{state.target.baud} #{state.serial_device_path}"},
       [:binary, :use_stdio, :stderr_to_stdout]
     )
@@ -95,12 +95,12 @@ defmodule Stingray.Console.Server do
 
   @impl GenServer
   def terminate(_reason, state) do
-    di(Port).close(state.port)
+    resolve(Port).close(state.port)
   end
 
   @impl GenServer
   def handle_call({:command, data}, _from, state) do
-    response = di(Port).command(state.port, data)
+    response = resolve(Port).command(state.port, data)
     {:reply, response, state}
   end
 
@@ -136,7 +136,7 @@ defmodule Stingray.Console.Server do
   @impl GenServer
   def handle_info(:uboot_prompt_timer, state) do
     uboot_console_string = state.target.uboot_console_string || ""
-    di(Port).command(state.port, uboot_console_string <> "\n")
+    resolve(Port).command(state.port, uboot_console_string <> "\n")
 
     {:noreply, state}
   end
@@ -210,7 +210,7 @@ defmodule Stingray.Console.Server do
   end
 
   defp wait_for_input_and_send(port, pid) do
-    data = di(IO).gets("")
+    data = resolve(IO).gets("")
 
     result =
       case Stingray.Console.CommandParser.parse(data) do

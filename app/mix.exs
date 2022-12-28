@@ -72,6 +72,7 @@ defmodule Stingray.MixProject do
       {:ring_logger, "~> 0.8"},
       {:toolshed, "~> 0.2"},
       {:muontrap, "~> 1.1"},
+      {:resolve, "~> 0.1"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.13", targets: @all_targets},

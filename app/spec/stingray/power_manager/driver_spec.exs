@@ -6,9 +6,9 @@ defmodule Stingray.PowerManager.Driver.Test do
   before do
     test_pid = self()
 
-    DI.inject(Stingray.PowerManager, Stingray.PowerManager.Driver)
+    Resolve.inject(Stingray.PowerManager, Stingray.PowerManager.Driver)
 
-    DI.inject(Circuits.GPIO, quote do
+    Resolve.inject(Circuits.GPIO, quote do
       def open(_pin, :output, [initial_value: 1]),
         do: {:ok, self()}
 
