@@ -59,23 +59,26 @@ defmodule Stingray.Target do
     | {:error, :invalid_baud}
     | {:error, :target_exists}
   def add(number, id, name, serial_port, baud, opts \\ [])
+
   def add(number, _id, _name, _serial_port, _baud, _opts)
-    when not is_integer(number) or number < 1, do:
-      {:error, :number_not_positive}
+    when not is_integer(number) or number < 1,
+      do: {:error, :number_not_positive}
 
   def add(_number, id, _name, _serial_port, _baud, _opts)
-    when not is_atom(id) or is_nil(id), do:
-      {:error, :id_not_atom}
+    when not is_atom(id) or is_nil(id),
+      do: {:error, :id_not_atom}
 
-  def add(_number, _id, name, _serial_port, _baud, _opts) when not is_binary(name), do:
-    {:error, :name_not_string}
+  def add(_number, _id, name, _serial_port, _baud, _opts)
+    when not is_binary(name),
+      do: {:error, :name_not_string}
 
-  def add(_number, _id, _name, serial_port, _baud, _opts) when not is_binary(serial_port), do:
-    {:error, :serial_port_not_string}
+  def add(_number, _id, _name, serial_port, _baud, _opts)
+    when not is_binary(serial_port),
+      do: {:error, :serial_port_not_string}
 
   def add(_number, _id, _name, _serial_port, baud, _opts)
-    when not is_integer(baud) or baud < 1, do:
-      {:error, :invalid_baud}
+    when not is_integer(baud) or baud < 1,
+      do: {:error, :invalid_baud}
 
   def add(number, id, name, serial_port, baud, opts) do
     target = %__MODULE__{
@@ -91,8 +94,7 @@ defmodule Stingray.Target do
 
     target_exists? =
       !!Enum.find(targets, fn t ->
-        t.id     == target.id ||
-        t.number == target.number
+        t.id == target.id || t.number == target.number
       end)
 
     case target_exists? do
