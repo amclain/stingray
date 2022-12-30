@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "am_omron")(type "Legacy")(uri "${KIPRJMOD}/lib/am_omron.lib")(options "")(descr ""))
+)

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "am_omron")(type "KiCad")(uri "${KIPRJMOD}/lib/am_omron.pretty")(options "")(descr ""))
+  (lib (name "Socket_BeagleBone_Black")(type "KiCad")(uri "${KIPRJMOD}/lib/Socket_BeagleBone_Black.pretty")(options "")(descr ""))
+)

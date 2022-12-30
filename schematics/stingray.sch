@@ -1,19 +1,20 @@
 EESchema Schematic File Version 4
 EELAYER 30 0
 EELAYER END
-$Descr A4 11693 8268
+$Descr USLetter 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "Stingray BBB Cape"
-Date ""
-Rev ""
-Comp "Alex McLain"
-Comment1 ""
+Date "2023-01-02"
+Rev "A"
+Comp "An Alex McLain Design"
+Comment1 "AM"
 Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
+<<<<<<< HEAD
 L Transistor_BJT:MPSA42 Q?
 U 1 1 638C4A05
 P 4100 4300
@@ -106,9 +107,157 @@ F 1 "22k" H 3118 4605 50  0000 L CNN
 F 2 "" V 3090 4640 50  0001 C CNN
 F 3 "~" H 3050 4650 50  0001 C CNN
 	1    3050 4650
+=======
+L Transistor_BJT:MPSA42 Q1
+U 1 1 638C4A05
+P 3900 3250
+F 0 "Q1" H 4091 3296 50  0000 L CNN
+F 1 "MPSA29" H 4091 3205 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline_Wide" H 4100 3175 50  0001 L CIN
+F 3 "http://www.onsemi.com/pub_link/Collateral/MPSA42-D.PDF" H 3900 3250 50  0001 L CNN
+	1    3900 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Diode:1N4001 D1
+U 1 1 638C679D
+P 3200 2300
+F 0 "D1" V 3154 2380 50  0000 L CNN
+F 1 "1N4001" V 3245 2380 50  0000 L CNN
+F 2 "Diode_THT:D_DO-41_SOD81_P7.62mm_Horizontal" H 3200 2125 50  0001 C CNN
+F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 3200 2300 50  0001 C CNN
+	1    3200 2300
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 638CB959
+P 4000 4150
+F 0 "#PWR0101" H 4000 3900 50  0001 C CNN
+F 1 "GND" H 4005 3977 50  0000 C CNN
+F 2 "" H 4000 4150 50  0001 C CNN
+F 3 "" H 4000 4150 50  0001 C CNN
+	1    4000 4150
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #VDD_3V03
+U 1 1 638CC0BA
+P 3200 1450
+F 0 "#VDD_3V03" H 3200 1300 50  0001 C CNN
+F 1 "+3.3V" H 3215 1623 50  0000 C CNN
+F 2 "" H 3200 1450 50  0001 C CNN
+F 3 "" H 3200 1450 50  0001 C CNN
+	1    3200 1450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R2
+U 1 1 638D2F42
+P 3300 3250
+F 0 "R2" V 3095 3250 50  0000 C CNN
+F 1 "1k" V 3186 3250 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 3340 3240 50  0001 C CNN
+F 3 "~" H 3300 3250 50  0001 C CNN
+	1    3300 3250
+	0    1    1    0   
+$EndComp
+$Comp
+L am_omron:G6RL-1 K1
+U 1 1 638DA595
+P 4200 2300
+F 0 "K1" H 4650 2250 50  0000 L CNN
+F 1 "G6RL-1" H 4650 2350 50  0000 L CNN
+F 2 "am_omron:G6RL-1" H 5330 2270 50  0001 C CNN
+F 3 "https://www.omron.com/ecb/products/pdf/en-g6e.pdf" H 4200 2300 50  0001 C CNN
+	1    4200 2300
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
+	4000 3450 4000 3950
+Wire Wire Line
+	3450 3250 3700 3250
+$Comp
+L Connector:Conn_01x04_Male J1
+U 1 1 6392355F
+P 6900 1850
+F 0 "J1" H 6872 1824 50  0000 R CNN
+F 1 "Target Board" H 6872 1733 50  0000 R CNN
+F 2 "Connector_Phoenix_MC:PhoenixContact_MC_1,5_4-G-3.81_1x04_P3.81mm_Horizontal" H 6900 1850 50  0001 C CNN
+F 3 "~" H 6900 1850 50  0001 C CNN
+	1    6900 1850
+	-1   0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R1
+U 1 1 638D2382
+P 2850 3600
+F 0 "R1" H 2918 3646 50  0000 L CNN
+F 1 "22k" H 2918 3555 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 2890 3590 50  0001 C CNN
+F 3 "~" H 2850 3600 50  0001 C CNN
+	1    2850 3600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2500 3250 2850 3250
+Wire Wire Line
+	2850 3250 2850 3450
+Connection ~ 2850 3250
+Wire Wire Line
+	2850 3250 3150 3250
+Wire Wire Line
+	2850 3750 2850 3950
+Wire Wire Line
+	2850 3950 4000 3950
+Text Notes 3050 1200 0    50   ~ 0
+VDD_3V3
+Text Notes 6300 1200 0    50   ~ 0
+SYS_5V
+$Comp
+L power:+5V #PWR0102
+U 1 1 63AFCDC2
+P 6450 1450
+F 0 "#PWR0102" H 6450 1300 50  0001 C CNN
+F 1 "+5V" H 6465 1623 50  0000 C CNN
+F 2 "" H 6450 1450 50  0001 C CNN
+F 3 "" H 6450 1450 50  0001 C CNN
+	1    6450 1450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP1_Small C1
+U 1 1 63B055EE
+P 5700 2350
+F 0 "C1" H 5791 2396 50  0000 L CNN
+F 1 "470u" H 5791 2305 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm" H 5700 2350 50  0001 C CNN
+F 3 "~" H 5700 2350 50  0001 C CNN
+	1    5700 2350
+>>>>>>> 7a08d32... Design single target PCB
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R3
+U 1 1 63B06001
+P 5350 2350
+F 0 "R3" H 5418 2396 50  0000 L CNN
+F 1 "1M" H 5418 2305 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 5390 2340 50  0001 C CNN
+F 3 "~" H 5350 2350 50  0001 C CNN
+	1    5350 2350
+	1    0    0    -1  
+$EndComp
+Text GLabel 2500 3250 0    50   Input ~ 0
+GPIO_48
+Wire Wire Line
+	3200 2800 4000 2800
+Wire Wire Line
+	4400 2000 4400 1850
+Wire Wire Line
+	4500 2600 4500 2700
+Wire Wire Line
+<<<<<<< HEAD
 	2700 4300 3050 4300
 Wire Wire Line
 	3050 4300 3050 4500
@@ -253,4 +402,364 @@ Wire Wire Line
 	3400 2800 3400 3200
 Wire Wire Line
 	4200 2800 3400 2800
+=======
+	4500 2700 5050 2700
+Wire Wire Line
+	5050 2700 5050 1950
+Wire Wire Line
+	6700 2050 6450 2050
+Wire Wire Line
+	6450 2050 6450 2700
+Wire Wire Line
+	6450 2700 6450 3000
+Wire Wire Line
+	5700 2700 5350 2700
+Connection ~ 6450 2700
+Wire Wire Line
+	5700 2050 5350 2050
+Connection ~ 5700 2050
+$Comp
+L power:GND #PWR0103
+U 1 1 63B59804
+P 6450 3000
+F 0 "#PWR0103" H 6450 2750 50  0001 C CNN
+F 1 "GND" H 6455 2827 50  0000 C CNN
+F 2 "" H 6450 3000 50  0001 C CNN
+F 3 "" H 6450 3000 50  0001 C CNN
+	1    6450 3000
+	1    0    0    -1  
+$EndComp
+Text Notes 8700 2050 0    50   ~ 0
+1 - 5V\n2 - S1\n3 - S2\n4 - GND
+Wire Wire Line
+	7550 1750 7700 1750
+Wire Wire Line
+	7700 1750 7700 1850
+Wire Wire Line
+	7700 1850 7550 1850
+Wire Wire Line
+	7550 1950 7850 1950
+Wire Wire Line
+	7550 2050 7850 2050
+Text Notes 7550 1500 0    50   ~ 0
+CONNECTOR WIRING FOR TARGET\nPOWERED FROM STINGRAY
+Text Notes 5350 2950 0    50   ~ 0
+PLACE CAPS NEAR\nTARGET HEADER
+Wire Wire Line
+	3200 2450 3200 2800
+Wire Wire Line
+	4000 2600 4000 2800
+Connection ~ 4000 2800
+Wire Wire Line
+	4000 2800 4000 3050
+Connection ~ 3200 1750
+Wire Wire Line
+	3200 1450 3200 1750
+Wire Wire Line
+	4000 1750 4000 2000
+Wire Wire Line
+	3200 1750 3200 2150
+Wire Wire Line
+	4000 1750 3200 1750
+Text GLabel 1600 6050 0    50   Input ~ 0
+GPIO_48
+$Comp
+L power:+3.3V #VDD_3V0101
+U 1 1 63BE7D14
+P 2200 5100
+F 0 "#VDD_3V0101" H 2200 4950 50  0001 C CNN
+F 1 "+3.3V" H 2215 5273 50  0000 C CNN
+F 2 "" H 2200 5100 50  0001 C CNN
+F 3 "" H 2200 5100 50  0001 C CNN
+	1    2200 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0104
+U 1 1 63BEDA7F
+P 1850 5100
+F 0 "#PWR0104" H 1850 4950 50  0001 C CNN
+F 1 "+5V" H 1865 5273 50  0000 C CNN
+F 2 "" H 1850 5100 50  0001 C CNN
+F 3 "" H 1850 5100 50  0001 C CNN
+	1    1850 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0105
+U 1 1 63BFFE46
+P 1600 5650
+F 0 "#PWR0105" H 1600 5400 50  0001 C CNN
+F 1 "GND" H 1605 5477 50  0000 C CNN
+F 2 "" H 1600 5650 50  0001 C CNN
+F 3 "" H 1600 5650 50  0001 C CNN
+	1    1600 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x23_Odd_Even P9
+U 1 1 55DF7DBA
+P 2650 6450
+F 0 "P9" H 2650 7650 50  0000 C CNN
+F 1 "BeagleBone_Black_Header" V 2700 6500 50  0000 C CNN
+F 2 "Socket_BeagleBone_Black:Socket_BeagleBone_Black" H 2650 5600 60  0001 C CNN
+F 3 "" H 2650 5600 60  0000 C CNN
+	1    2650 6450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x23_Odd_Even P8
+U 1 1 55DF7DE1
+P 4750 6450
+F 0 "P8" H 4750 7650 50  0000 C CNN
+F 1 "BeagleBone_Black_Header" V 4800 6500 50  0000 C CNN
+F 2 "Socket_BeagleBone_Black:Socket_BeagleBone_Black" H 4750 5600 60  0001 C CNN
+F 3 "" H 4750 5600 60  0000 C CNN
+	1    4750 6450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1850 5100 1850 5650
+Wire Wire Line
+	1600 6050 2450 6050
+Wire Wire Line
+	2200 5450 2450 5450
+Wire Wire Line
+	1850 5650 2450 5650
+Wire Wire Line
+	2450 5350 1600 5350
+Wire Wire Line
+	1600 5350 1600 5650
+$Comp
+L Device:CP1_Small C2
+U 1 1 63C6E3C2
+P 6150 2350
+F 0 "C2" H 6241 2396 50  0000 L CNN
+F 1 "DNP" H 6241 2305 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm" H 6150 2350 50  0001 C CNN
+F 3 "~" H 6150 2350 50  0001 C CNN
+	1    6150 2350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5700 2700 6150 2700
+Connection ~ 5700 2700
+Wire Wire Line
+	5050 1950 6700 1950
+Wire Wire Line
+	4400 1850 6700 1850
+Wire Wire Line
+	5700 2050 6150 2050
+Connection ~ 6150 2700
+Wire Wire Line
+	6150 2700 6450 2700
+Wire Wire Line
+	6150 2050 6150 1750
+Connection ~ 6150 2050
+Wire Wire Line
+	5350 2500 5350 2700
+Wire Wire Line
+	5700 2450 5700 2700
+Wire Wire Line
+	6150 2450 6150 2700
+Wire Wire Line
+	5350 2050 5350 2200
+Wire Wire Line
+	5700 2050 5700 2250
+Wire Wire Line
+	6150 2050 6150 2250
+$Comp
+L power:+3.3V #VDD_3V0102
+U 1 1 63CA0447
+P 3200 5100
+F 0 "#VDD_3V0102" H 3200 4950 50  0001 C CNN
+F 1 "+3.3V" H 3215 5273 50  0000 C CNN
+F 2 "" H 3200 5100 50  0001 C CNN
+F 3 "" H 3200 5100 50  0001 C CNN
+	1    3200 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0106
+U 1 1 63CA11E7
+P 3550 5100
+F 0 "#PWR0106" H 3550 4950 50  0001 C CNN
+F 1 "+5V" H 3565 5273 50  0000 C CNN
+F 2 "" H 3550 5100 50  0001 C CNN
+F 3 "" H 3550 5100 50  0001 C CNN
+	1    3550 5100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0107
+U 1 1 63CA19F9
+P 3800 5650
+F 0 "#PWR0107" H 3800 5400 50  0001 C CNN
+F 1 "GND" H 3805 5477 50  0000 C CNN
+F 2 "" H 3800 5650 50  0001 C CNN
+F 3 "" H 3800 5650 50  0001 C CNN
+	1    3800 5650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 5450 3200 5450
+Wire Wire Line
+	3550 5650 2950 5650
+Wire Wire Line
+	3200 5100 3200 5450
+Wire Wire Line
+	3550 5100 3550 5650
+Wire Wire Line
+	2950 5350 3800 5350
+Wire Wire Line
+	3800 5350 3800 5650
+$Comp
+L Mechanical:MountingHole H1
+U 1 1 63B99D2B
+P 6600 5400
+F 0 "H1" H 6700 5446 50  0000 L CNN
+F 1 "MountingHole" H 6700 5355 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3" H 6600 5400 50  0001 C CNN
+F 3 "~" H 6600 5400 50  0001 C CNN
+	1    6600 5400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H2
+U 1 1 63B9A576
+P 6600 5650
+F 0 "H2" H 6700 5696 50  0000 L CNN
+F 1 "MountingHole" H 6700 5605 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3" H 6600 5650 50  0001 C CNN
+F 3 "~" H 6600 5650 50  0001 C CNN
+	1    6600 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H3
+U 1 1 63B9AB64
+P 6600 5900
+F 0 "H3" H 6700 5946 50  0000 L CNN
+F 1 "MountingHole" H 6700 5855 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3" H 6600 5900 50  0001 C CNN
+F 3 "~" H 6600 5900 50  0001 C CNN
+	1    6600 5900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H4
+U 1 1 63B9B19C
+P 6600 6150
+F 0 "H4" H 6700 6196 50  0000 L CNN
+F 1 "MountingHole" H 6700 6105 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3" H 6600 6150 50  0001 C CNN
+F 3 "~" H 6600 6150 50  0001 C CNN
+	1    6600 6150
+	1    0    0    -1  
+$EndComp
+NoConn ~ 4300 2600
+NoConn ~ 2450 5550
+NoConn ~ 2950 5550
+NoConn ~ 2450 5750
+NoConn ~ 2450 5850
+NoConn ~ 2450 5950
+NoConn ~ 2950 5750
+NoConn ~ 2950 5850
+NoConn ~ 2950 5950
+NoConn ~ 2950 6050
+NoConn ~ 2450 6150
+NoConn ~ 2450 6250
+NoConn ~ 2450 6350
+NoConn ~ 2450 6450
+NoConn ~ 2450 6550
+NoConn ~ 2450 6650
+NoConn ~ 2450 6750
+NoConn ~ 2450 6850
+NoConn ~ 2450 6950
+NoConn ~ 2450 7050
+NoConn ~ 2450 7150
+NoConn ~ 2450 7250
+NoConn ~ 2450 7350
+NoConn ~ 2450 7450
+NoConn ~ 2450 7550
+NoConn ~ 2950 6150
+NoConn ~ 2950 6250
+NoConn ~ 2950 6350
+NoConn ~ 2950 6450
+NoConn ~ 2950 6550
+NoConn ~ 2950 6650
+NoConn ~ 2950 6750
+NoConn ~ 2950 6850
+NoConn ~ 2950 6950
+NoConn ~ 2950 7050
+NoConn ~ 2950 7150
+NoConn ~ 2950 7250
+NoConn ~ 2950 7350
+NoConn ~ 2950 7450
+NoConn ~ 2950 7550
+NoConn ~ 4550 5350
+NoConn ~ 4550 5450
+NoConn ~ 4550 5550
+NoConn ~ 4550 5650
+NoConn ~ 4550 5750
+NoConn ~ 4550 5850
+NoConn ~ 4550 5950
+NoConn ~ 4550 6050
+NoConn ~ 4550 6150
+NoConn ~ 4550 6250
+NoConn ~ 4550 6350
+NoConn ~ 4550 6450
+NoConn ~ 4550 6550
+NoConn ~ 4550 6650
+NoConn ~ 4550 6750
+NoConn ~ 4550 6850
+NoConn ~ 4550 6950
+NoConn ~ 4550 7050
+NoConn ~ 4550 7150
+NoConn ~ 4550 7250
+NoConn ~ 4550 7350
+NoConn ~ 4550 7450
+NoConn ~ 4550 7550
+NoConn ~ 5050 5350
+NoConn ~ 5050 5450
+NoConn ~ 5050 5550
+NoConn ~ 5050 5650
+NoConn ~ 5050 5750
+NoConn ~ 5050 5850
+NoConn ~ 5050 5950
+NoConn ~ 5050 6050
+NoConn ~ 5050 6150
+NoConn ~ 5050 6250
+NoConn ~ 5050 6350
+NoConn ~ 5050 6450
+NoConn ~ 5050 6550
+NoConn ~ 5050 6650
+NoConn ~ 5050 6750
+NoConn ~ 5050 6850
+NoConn ~ 5050 6950
+NoConn ~ 5050 7050
+NoConn ~ 5050 7150
+NoConn ~ 5050 7250
+NoConn ~ 5050 7350
+NoConn ~ 5050 7450
+NoConn ~ 5050 7550
+Wire Wire Line
+	2200 5100 2200 5450
+Wire Wire Line
+	4000 4150 4000 3950
+Connection ~ 4000 3950
+Wire Wire Line
+	6150 1750 6450 1750
+Wire Wire Line
+	6450 1450 6450 1750
+Connection ~ 6450 1750
+Wire Wire Line
+	6450 1750 6700 1750
+Text Label 7850 1950 0    50   ~ 0
+TARGET_VCC
+Text Label 7850 2050 0    50   ~ 0
+TARGET_GND
+Text Label 7850 1800 0    50   ~ 0
+JUMPER
+>>>>>>> 7a08d32... Design single target PCB
 $EndSCHEMATC
