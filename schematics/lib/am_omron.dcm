@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP G6RL-1
+D Omron Low-profile SPDT Relay
+K Single Pole Relay SPDT
+F https://omronfs.omron.com/en_US/ecb/products/pdf/en-g6rl.pdf
+$ENDCMP
+#
+#End Doc Library
