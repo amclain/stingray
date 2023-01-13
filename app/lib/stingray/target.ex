@@ -90,28 +90,29 @@ defmodule Stingray.Target do
       uboot_console_string: opts[:uboot_console_string]
     }
 
-    targets = CubDB.get(:settings, :targets, [])
+    CubDB.get_and_update(:settings, :targets, fn targets ->
+      targets = targets || []
 
-    target_exists? =
-      !!Enum.find(targets, fn t ->
-        t.id == target.id || t.number == target.number
-      end)
+      target_exists? =
+        !!Enum.find(targets, fn t ->
+          t.id == target.id || t.number == target.number
+        end)
 
-    case target_exists? do
-      true ->
-        {:error, :target_exists}
+      case target_exists? do
+        true ->
+          {{:error, :target_exists}, targets}
 
-      _ ->
-        targets = add_sorted_target(targets, target)
-        CubDB.put(:settings, :targets, targets)
+        _ ->
+          targets = add_sorted_target(targets, target)
 
-        if nfs_enabled?(),
-          do: :ok = export_file_share(target)
+          if nfs_enabled?(),
+            do: :ok = export_file_share(target)
 
-        ensure_upload_directory_exists(target)
+          ensure_upload_directory_exists(target)
 
-        {:ok, target}
-    end
+          {{:ok, target}, targets}
+      end
+    end)
   end
 
   @doc """
