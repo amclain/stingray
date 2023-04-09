@@ -67,7 +67,7 @@ defmodule Stingray.MixProject do
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
       {:file_system, "~> 0.2.10"},
       {:jason, "~> 1.4"},
-      {:nerves, "~> 1.9", runtime: false},
+      {:nerves, "~> 1.10", runtime: false},
       {:shoehorn, "~> 0.9"},
       {:ring_logger, "~> 0.8"},
       {:toolshed, "~> 0.2"},
@@ -96,7 +96,7 @@ defmodule Stingray.MixProject do
 
       _ -> {
         :nerves_system_stingray_bbb,
-        ref: "v1.0.3",
+        ref: "v1.0.4",
         git: "git@github.com:amclain/nerves_system_stringray_bbb.git",
         runtime: false,
         targets: :bbb
